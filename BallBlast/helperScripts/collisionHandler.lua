@@ -18,23 +18,6 @@ local myMath={
   max=math.max,
 }
 
---trying something different
-function collisionHandler.circleRect(circle, rect) 
-    circle.contentBound.x = math.abs(circle.contentBound.x - rect.debugImage.x);
-    circle.contentBound.y = math.abs(circle.contentBound.y - rect.debugImage.y);
-
-    if (circle.contentBound.x > (rect.debugImage.width/2 + circle.contentBound.r)) then return false end
-    if (circle.contentBound.y > (rect.debugImage.height/2 + circle.contentBound.r)) then return false end 
-
-    if (circle.contentBound.x <= (rect.debugImage.width/2)) then return true end 
-    if (circle.contentBound.y <= (rect.debugImage.height/2)) then return true end
-
-    local cornerDistance_sq = (circle.contentBound.x - rect.debugImage.width/2)^2 + (circle.contentBound.y - rect.debugImage.height/2)^2
-
-    return (cornerDistance_sq <= (circle.contentBound.r^2))
-
-end
-
 --generic collison handler that will detect objects' bounds as circle or box and call necessary collision checker automatically:
 function collisionHandler.hasCollided( obj1, obj2 )
     if(obj1.contentBound.r~=nil and obj2.contentBound.xMin~=nil)then--circle-rect
