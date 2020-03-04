@@ -4,6 +4,8 @@ local bullet = { displayGroup = nil}
 
 local bullet_mt = {__index = bullet}
 
+-------------------
+
 function bullet.new(x,y)
 	local newBullet = {
 	x = x,  y = y,
@@ -11,16 +13,20 @@ function bullet.new(x,y)
 	removeMe = false,
 	damage = 21, -- amount of damage on hitting obstacle
 	sprite = display.newRect(bullet.displayGroup, x, y, 10,10),
+	isSensor = false
 	}
 
 	return setmetatable(newBullet, bullet_mt)
 end
 
+-------------------
 
 function bullet:updateImage()
 	self.sprite.x = self.x
 	self.sprite.y = self.y
 end
+
+-------------------
 
 function bullet:update(dt)
  	self.x = self.x + self.VX * dt
@@ -29,9 +35,12 @@ function bullet:update(dt)
 	if self.y < 100 then -- if bullet goes past 100 in negative y-axis it should pool
 		self.removeMe = true
 	end
+	
 	-- update view
 	self:updateImage()
 end
+
+-------------------
 
 function bullet:sendToPool()
 	self.x = -5000
@@ -39,6 +48,17 @@ function bullet:sendToPool()
 	self.sprite.x = self.x
 	self.sprite.y = self.y
 	self.removeMe = false
+	self.sprite.alpha = 1
+	self.isSensor = false
 end
+
+-------------------
+
+function bullet:disableBullet()
+	self.sprite.alpha = 0
+	self.isSensor = true
+end
+
+-------------------
 
 return bullet

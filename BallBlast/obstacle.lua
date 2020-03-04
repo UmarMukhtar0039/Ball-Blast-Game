@@ -24,7 +24,10 @@ function obstacle.new(type, x, y)
         lifeInGradesSprite = nil, -- sprite to hold the anim sprite
         removeMe = false,
         outOfBound = false, -- if obstacle goes out of bound delete it's display
-        contentBound = { x = nil, y = nil, r = nil}
+        contentBound = { x = nil, y = nil, r = nil},
+        emitter = nil, -- on detruction start emmiting particles
+        isActive = true, -- used to indicate if object is in active state or not, in-active state is when the obstacle life becomes 0
+        isSensor = false, -- to sensor means it should not respond to collision
     }
 
     newObstacle = typesMap.makeObstacle(newObstacle, obstacle.displayGroup)
@@ -49,33 +52,53 @@ function obstacle.updateImage(self)
     self.lifeInGradesSprite.y = self.y - 10
     self.lifeInGradesSprite:setFrame(self.lifeInGrade+1)
 
+    -- if not active then set alpha to 0 
+    if not self.isActive then
+        self.sprite.alpha = 0
+        self.lifeInGradesSprite.alpha = 0
+    end
     -- self.sprite.alpha = self.y/200 -- setting alpha w.r.t the players position, if player is at 700 it's alpha will be 1
 end
 
 ---------------------------
 
+function obstacle:updateEmitter( dt )
+    self.emitter:update(dt)
+end
+---------------------------
+
 -- updating model and view of obstacle, called every frame from an external script
 function obstacle.update(self, playerVY, dt)
+
     self.x = self.x + self.VX  * dt
     self.y = self.y + self.VY  * dt
 
     self.lifeInGrade = math.round((self.life/self.totalLife)*5) -- life grade should be atmost 5
-    
+
     -- going beyond screen, remove it
-    if self.y > display.contentHeight - 100 or self.life <= 0 then--+ self.width * 0.5 then
+    if self.y > display.contentHeight - 100 then--+ self.width * 0.5 then
         self.removeMe = true
     end
 
-    self:updateBound()   
-    self.updateImage(self)  
+    if self.life <= 0 and self.isActive then 
+        self.emitter.x = self.x
+        self.emitter.y = self.y 
+        self.emitter.forceSingleEmission = true
+        self.isActive = false 
+        self.isSensor = true
+    end
+
+    self:updateBound()
+    self.updateImage(self)
+    self:updateEmitter(dt)
 end
 
 ---------------------------
+
 -- destorying all sprites of obstacle
 function obstacle:destroyImages( )
     self.sprite:removeSelf()
     self.sprite = nil
-    printDebugStmt.print(self.lifeInGrade)
     self.lifeInGradesSprite:removeSelf()
     self.lifeInGradesSprite = nil
     

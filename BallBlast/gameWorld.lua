@@ -7,6 +7,7 @@ local bulletMaker = require("bullet")
 local deltaTime = require("helperScripts.deltaTime")
 local collisionHandler = require("helperScripts.collisionHandler")
 local printDebugStmt = require("helperScripts.printDebugStmt")
+-- local soundManager = require("soundManager")
 
 
 ---------local vars---------
@@ -44,7 +45,7 @@ local function update()
 		finishTimer = finishTimer + dt -- for trigger finish after finishTimeLimit
 		if finishTimer >= finishTimeLimit then
 			gameWorld.gameState = "suspended"
-			-- printDebugStmt.print("Game Over")
+			printDebugStmt.print("Game Over")
 		end
 		return
 	end
@@ -69,13 +70,14 @@ function updateObstacles(dt)
 	 	obstacleSpawnTimer = 0 -- reset timer
 	end
 
-	-- updatin obstacles
+
+
+	-- update obstacles 
 	for i=#obstacles,1,-1 do
 		obstacles[i]:update(player.VY, dt)	
-		if obstacles[i].removeMe == true then -- if it goes out of bounds remove it
-			obstacles[i]:destroyImages()
-			table.remove(obstacles, i)
-		elseif collisionHandler.hasCollided(obstacles[i], leftWall) then
+		
+		-- checking left and rightWall collision
+		if collisionHandler.hasCollided(obstacles[i], leftWall) then
 			if obstacles[i].VX < 0 then -- if collided with left wall then always give it positive velocity
 				obstacles[i].VX = -obstacles[i].VX -- give it a positive velocity
 			end
@@ -84,18 +86,21 @@ function updateObstacles(dt)
 				obstacles[i].VX = -obstacles[i].VX -- give it a negative velocity
 			end
 		end
-	end
 
-	-- checking bullet collison
-	for i=#obstacles,1,-1 do
+		-- checking collision of obstacle with bullets
 		for j=1,#bullets do
 			if collisionHandler.circlePoint(obstacles[i], bullets[j]) then-- circle point collison
 				obstacles[i].life = obstacles[i].life - bullets[j].damage -- reduce obstacles life on collision
-				bullets[j].removeMe = true -- remove the bullet(to bulletsPool)
+				bullets[j]:disableBullet()
 			end
 		end
+
+		if obstacles[i].removeMe == true then -- if it goes out of bounds remove it
+			local temp = table.remove(obstacles, i)
+			temp:destroyImages()
+			temp = nil
+		end
 	end
-			
 end
 
 ------------------------
@@ -109,7 +114,6 @@ function updatePlayer(dt)
 			break
 		end		
 	end
-
 end
 
 ------------------------
@@ -128,11 +132,13 @@ function updateBullets(dt)
 	-- updating bullets
 	for i=#bullets,1,-1 do
 		bullets[i]:update(dt)
-		if bullets[i].removeMe == true then
+
+		if bullets[i].removeMe then
 			bullets[i]:sendToPool()
 			bulletsPool[#bulletsPool + 1] = table.remove(bullets, i)
 		end
 	end
+
 end
 
 ------------------------
@@ -214,6 +220,7 @@ local function init()
 	finishTimeLimit = 2
 	gameWorld.gameState = "ready" -- initially the game state will by ready
 
+	-- soundManager.init()
 end
 
 ------------------------

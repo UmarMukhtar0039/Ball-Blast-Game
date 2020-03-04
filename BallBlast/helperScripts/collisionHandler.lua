@@ -49,6 +49,19 @@ end
 
 
 function collisionHandler.circlePoint(circle, point)
+  if circle.isSensor or point.isSensor then
+      return false
+  end
+  if ( circle == nil) then  -- Make sure the first object exists
+      return false
+  end
+  if ( point == nil ) then  -- Make sure the other object exists
+      return false
+  end
+  if(circle==point)then -- do not check collision with self
+    return false
+  end
+
   if circle.contentBound.r ~=nil and point.x ~=nil then
     local xDis =  (circle.contentBound.x - point.x)^2 -- sq. of distance of point from circle center on x-axis
     local yDis = (circle.contentBound.y - point.y)^2 -- sq. of distance of point from circle center on y-axis

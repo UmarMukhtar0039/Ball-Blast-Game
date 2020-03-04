@@ -1,6 +1,6 @@
 local particleSystem={allowParticles=true}
 
--- local debugStmt=require "scripts.helperScripts.printDebugStmt"
+local debugStmt=require "helperScripts.printDebugStmt"
 -- local toast=require "scripts.helperScripts.toast"
 
 local particleSystem_mt={__index=particleSystem}--particle system metatable

@@ -2,6 +2,7 @@ local obstacleTypesMap = {}
 
 local assetName = require("helperScripts.assetName")
 local animationService = require("helperScripts.animationService")
+local particleSystem = require("helperScripts.particleSystem")
 
 function obstacleTypesMap.makeObstacle( obstacle, displayGroup )
     local xVelocity = { -225, 0,120 , 225}
@@ -37,7 +38,12 @@ function obstacleTypesMap.makeObstacle( obstacle, displayGroup )
         obstacle.contentBound.y = obstacle.y
         obstacle.contentBound.r = obstacle.sprite.path.radius
     ---------------------------
-   
+
+        -- init emmiter
+        emitterProperties = { name="onDeath", x=obstacle.x,y=obstacle.y, displayGroup=displayGroup,xVar = 30, yVar = 40, 
+                              particlePath={assetName.dustParticle}, emissionRate = 1, count = 10,  life = 1, isRadial = true,  
+                              vX = 0,vXVar = 200, vY = 0, vYVar = 200, shouldFadeOut = true,}
+        obstacle.emitter = particleSystem.new(emitterProperties)
     end
 
     return obstacle
