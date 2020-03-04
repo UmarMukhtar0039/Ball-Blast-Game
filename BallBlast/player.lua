@@ -14,6 +14,9 @@ function player.new(type, x, y)
 		dir = nil,
 		sprite = nil, -- actual sprite of player
 		-- shadow = nil -- shadow of player
+		--collision properties
+		contentBound = {xMin = nil, yMin = nil, xMax = nil, yMax = nil, width = nil, height = nil}		
+
 	}
 
 	newPlayer = typesMap.makePlayer(newPlayer, player.displayGroup) -- make object's view based on its type
@@ -21,6 +24,13 @@ function player.new(type, x, y)
 	return setmetatable(newPlayer, player_mt)  -- this will return an object of this class
 end
 
+---------------------------
+function player:updateBound( )
+	self.contentBound.xMin = self.x - self.contentBound.width * 0.5
+	self.contentBound.xMax = self.x + self.contentBound.width * 0.5
+	self.contentBound.yMin = self.y - self.contentBound.height * 0.5 --+ self.contentBound.yOffset
+	self.contentBound.yMax = self.y + self.contentBound.height * 0.5 --+ self.contentBound.yOffset
+end
 ---------------------------
 
 -- updating view
@@ -40,6 +50,7 @@ function player:update(dt)
 		self.x = self.x - self.VX * dt
 	end
 	
+	self:updateBound()
 	self:updateImage()
 end
 

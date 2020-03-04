@@ -3,10 +3,11 @@ local obstacle = {
     shadowGroup = nil,
 }
 local typesMap = require("obstacleTypesMap")
-
+local particleSystem = require("helperScripts.particleSystem")
 local obstacle_mt = {__index = obstacle}
 
 ---------------------------
+
 -- creates a new instance
 function obstacle.new(type, x, y)
     local newObstacle = {
@@ -18,6 +19,10 @@ function obstacle.new(type, x, y)
         height = nil,
         width = nil,
         sprite = nil,
+        life = nil, -- actual life in numerics
+        lifeInGrade = nil, -- life in graphics
+        lifeInGradesSprite = nil, -- sprite to hold the anim sprite
+        removeMe = false,
         outOfBound = false, -- if obstacle goes out of bound delete it's display
         contentBound = { x = nil, y = nil, r = nil}
     }
@@ -34,10 +39,16 @@ function obstacle:updateBound( )
     self.contentBound.y = self.y 
 end
 
+---------------------------
+
 -- when we bind a certain function to a particular table then it should not be local
 function obstacle.updateImage(self)
     self.sprite.x = self.x
     self.sprite.y = self.y
+    self.lifeInGradesSprite.x = self.x + 10
+    self.lifeInGradesSprite.y = self.y - 10
+    self.lifeInGradesSprite:setFrame(self.lifeInGrade+1)
+
     -- self.sprite.alpha = self.y/200 -- setting alpha w.r.t the players position, if player is at 700 it's alpha will be 1
 end
 
@@ -48,9 +59,11 @@ function obstacle.update(self, playerVY, dt)
     self.x = self.x + self.VX  * dt
     self.y = self.y + self.VY  * dt
 
+    self.lifeInGrade = math.round((self.life/self.totalLife)*5) -- life grade should be atmost 5
+    
     -- going beyond screen, remove it
-    if self.y > display.contentHeight - 100 then--+ self.width * 0.5 then
-        self.outOfBound = true
+    if self.y > display.contentHeight - 100 or self.life <= 0 then--+ self.width * 0.5 then
+        self.removeMe = true
     end
 
     self:updateBound()   
@@ -62,6 +75,10 @@ end
 function obstacle:destroyImages( )
     self.sprite:removeSelf()
     self.sprite = nil
+    printDebugStmt.print(self.lifeInGrade)
+    self.lifeInGradesSprite:removeSelf()
+    self.lifeInGradesSprite = nil
+    
 end
 
 

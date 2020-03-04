@@ -7,8 +7,9 @@ local bullet_mt = {__index = bullet}
 function bullet.new(x,y)
 	local newBullet = {
 	x = x,  y = y,
-	VX = 0, VY = -800, 
+	VX = 0, VY = -1000, 
 	removeMe = false,
+	damage = 21, -- amount of damage on hitting obstacle
 	sprite = display.newRect(bullet.displayGroup, x, y, 10,10),
 	}
 

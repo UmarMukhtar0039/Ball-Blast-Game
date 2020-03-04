@@ -41,8 +41,24 @@ function collisionHandler.rectPoint( rect, point ) -- used ontouch events
          rect.contentBound.yMin > point.y or  rect.contentBound.yMax < point.y then
         return false
       end
-    end
         return true
+    end
+end
+
+-------------------
+
+
+function collisionHandler.circlePoint(circle, point)
+  if circle.contentBound.r ~=nil and point.x ~=nil then
+    local xDis =  (circle.contentBound.x - point.x)^2 -- sq. of distance of point from circle center on x-axis
+    local yDis = (circle.contentBound.y - point.y)^2 -- sq. of distance of point from circle center on y-axis
+    local radiusSq = circle.contentBound.r^2 -- sq. of radius of circle
+    
+    if radiusSq < xDis + yDis then
+       return false
+    end
+    return true
+  end
 end
 
 -------------------
