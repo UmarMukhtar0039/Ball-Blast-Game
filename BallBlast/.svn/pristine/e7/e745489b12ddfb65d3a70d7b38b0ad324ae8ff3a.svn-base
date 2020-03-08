@@ -26,10 +26,8 @@ function obstacle.new(type, x, y)
         outOfBound = false, -- if obstacle goes out of bound delete it's display
         contentBound = { x = nil, y = nil, r = nil},
         emitter = nil, -- on detruction start emmiting particles
-        isAlive = true, -- used to indicate if object is in active state or not, in-active state is when the obstacle life becomes 0
+        isActive = true, -- used to indicate if object is in active state or not, in-active state is when the obstacle life becomes 0
         isSensor = false, -- to sensor means it should not respond to collision
-        scoreAmount = nil, -- amount of score that will be added to player's current score after obstacle is destroyed
-        hasScored = false,
     }
 
     newObstacle = typesMap.makeObstacle(newObstacle, obstacle.displayGroup)
@@ -52,13 +50,10 @@ function obstacle.updateImage(self)
     self.sprite.y = self.y
     self.lifeInGradesSprite.x = self.x + 10
     self.lifeInGradesSprite.y = self.y - 10
-    if self.lifeInGrade<=0 then
-       self.lifeInGrade = 0 
-    end
     self.lifeInGradesSprite:setFrame(self.lifeInGrade+1)
 
     -- if not active then set alpha to 0 
-    if not self.isAlive then
+    if not self.isActive then
         self.sprite.alpha = 0
         self.lifeInGradesSprite.alpha = 0
     end
@@ -70,11 +65,10 @@ end
 function obstacle:updateEmitter( dt )
     self.emitter:update(dt)
 end
-
 ---------------------------
 
 -- updating model and view of obstacle, called every frame from an external script
-function obstacle.update(self, dt)
+function obstacle.update(self, playerVY, dt)
 
     self.x = self.x + self.VX  * dt
     self.y = self.y + self.VY  * dt
@@ -82,19 +76,16 @@ function obstacle.update(self, dt)
     self.lifeInGrade = math.round((self.life/self.totalLife)*5) -- life grade should be atmost 5
 
     -- going beyond screen, remove it
-    if self.y > display.contentHeight - 100 or self.x > display.contentWidth+100 or self.x < -100 then--+ self.width * 0.5 then
+    if self.y > display.contentHeight - 100 then--+ self.width * 0.5 then
         self.removeMe = true
     end
 
-    if self.life <= 0 and self.isAlive then 
+    if self.life <= 0 and self.isActive then 
         self.emitter.x = self.x
-        self.emitter.y = self.y
-        self.VX = 0 -- make horizontal velocity 0 
+        self.emitter.y = self.y 
         self.emitter.forceSingleEmission = true
-        self.isAlive = false 
+        self.isActive = false 
         self.isSensor = true
-        obstacle.player.score=obstacle.player.score+self.scoreAmount -- incrementing player's score when obstacle is not alive
-        obstacle.player.lastDestroyedObstacle=self -- giving reference of last obstacle that was destroyed by player
     end
 
     self:updateBound()

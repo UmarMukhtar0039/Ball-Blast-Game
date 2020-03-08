@@ -1,9 +1,9 @@
 local messageService={	width=display.contentWidth,
 								height=display.contentHeight,
 							}
-local timerService=require "helperScripts.timerService"							
-local assetName=require "helperScripts.assetName"
-local debugStmt=require "helperScripts.printDebugStmt"
+local timerService=require "scripts.helperScripts.timerService"							
+local assetName=require "scripts.helperScripts.assetName"
+local debugStmt=require "scripts.helperScripts.printDebugStmt"
 local obj--the text display object
 local image-- some calls may supply an optional imagePath to be displayed
 local q--a queue that stores the data 

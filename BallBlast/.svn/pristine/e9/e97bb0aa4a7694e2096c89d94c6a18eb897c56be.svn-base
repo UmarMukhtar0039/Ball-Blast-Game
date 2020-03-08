@@ -3,8 +3,9 @@ preferenceHandler.init() -- initializing game box that will be initialized once 
 
 local lC = preferenceHandler.get("launchCount")
 preferenceHandler.set("launchCount",lC+1) -- incrementing launch count every time the game is launched
+printDebugStmt.print(preferenceHandler.get("launchCount")) -- print the last
 
 
 local composer = require("composer")
 
-composer.gotoScene("Screens.mainMenu",{ params = {callingScene="nil"}})
+composer.gotoScene("mainMenu",{ params = {callingScene="nil"}})

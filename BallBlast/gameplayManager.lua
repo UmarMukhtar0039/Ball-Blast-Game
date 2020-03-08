@@ -1,0 +1,55 @@
+local gameplayManager = {displayGroup = nil,}
+
+local messageService = require("helperScripts.messageService")
+
+-----localVars--and--fwdReference-----
+local player -- will contain reference of player from game world
+local playerPrevScore -- contains last player score before this iteration 
+local scoreText -- player's score display object 
+local setupDisplayObjects -- function to setup score display
+local updatePlayer -- will update player's score
+local updateDisplayObjects  -- will update display objects (score text)
+local displayObjects -- contains reference to all display objects in gameplay manager
+
+function gameplayManager.init(playerRef, obstaclesRef)
+	player = playerRef
+	playerPrevScore = player.score
+	
+	setupDisplayObjects()
+end
+
+-----------------------------
+
+-- init display objects
+function setupDisplayObjects() -- sets up score text to display
+	scoreText = display.newText(gameplayManager.displayGroup,"Score: "..playerPrevScore, display.contentWidth - 150 , 100)
+end
+
+-----------------------------
+
+function gameplayManager.update()
+	updateDisplayObjects()
+end
+
+-----------------------------
+-- update text in score
+function updateDisplayObjects()
+	if playerPrevScore ~= player.score then -- if player's score increases or decreases
+		playerPrevScore = player.score
+		local obstacle=player.lastDestroyedObstacle
+
+		if not obstacle.isAlive then
+			-- messageService.showMessageWithoutQueue(gameplayManager.displayGroup,{text="+"..obstacles[i].scoreAmount,x=obstacles[i].x+100,y=obstacles[i].y,time = 1000, color={r=1,g=0,b=0}})						
+			local scoreAmount = display.newText(gameplayManager.displayGroup, "+"..obstacle.scoreAmount, obstacle.x+100,obstacle.y)
+			transition.to(scoreAmount,{x=scoreText.x, y=scoreText.y,delay=500,time=300,onComplete=
+				function()	
+					scoreAmount:removeSelf()
+					scoreAmount=nil
+				end})
+		end
+	end	
+	scoreText.text = "Score: "..playerPrevScore
+end
+
+-----------------------------
+return gameplayManager

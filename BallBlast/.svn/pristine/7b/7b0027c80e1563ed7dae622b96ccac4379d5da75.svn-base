@@ -6,8 +6,6 @@ local particleSystem = require("helperScripts.particleSystem")
 
 function obstacleTypesMap.makeObstacle( obstacle, displayGroup )
     local xVelocity = { -225, 0,120 , 225}
-    local varLife = {100,200,150,175}
-    local score = {50,100,75,85}
     local colour = { {r= 1,g=0,b=0}, {r=0,g=1,b=0}, {r=0,g=0,b=1},{r=1,g=0,b=1}}
     if obstacle.type == "circle" then
         local lifeSheet = graphics.newImageSheet(assetName.obstacleLifeInGrade, {width=80, height=40, numFrames =6,sheetContentWidth=480,sheetContentHeight =40})
@@ -19,36 +17,35 @@ function obstacleTypesMap.makeObstacle( obstacle, displayGroup )
             loopDirection="forward"
         }
 
-        local selector = math.random(#xVelocity) -- currently length is 4
+        local selector = math.random(#xVelocity)
         obstacle.sprite = display.newCircle(displayGroup, obstacle.x, obstacle.y, 50)
-        obstacle.sprite:setFillColor(colour[selector].r, colour[selector].g, colour[selector].b) -- giving a random colour
-        obstacle.sprite.x=obstacle.x
-        obstacle.sprite.y=obstacle.y
-        obstacle.VX=xVelocity[selector] -- giving a random velocity
-        obstacle.scoreAmount=score[selector] -- giving a random score amount
-
+        obstacle.sprite:setFillColor(colour[selector].r, colour[selector].g, colour[selector].b) 
+        obstacle.sprite.x = obstacle.x
+        obstacle.sprite.y = obstacle.y
+        obstacle.VX = xVelocity[selector]
         -- setting up life 
-        obstacle.life=varLife[selector]
-        obstacle.totalLife=obstacle.life
-        obstacle.lifeInGrade=(obstacle.life/obstacle.totalLife) * 5 -- bcz we have 5 stripes
-        obstacle.lifeInGradesSprite=animationService.newSprite(displayGroup, lifeSheet, lifeAnimSequeunce)
-        obstacle.lifeInGradesSprite.x=obstacle.x
-        obstacle.lifeInGradesSprite.y=obstacle.y
+        obstacle.life = 100
+        obstacle.totalLife = obstacle.life
+        obstacle.lifeInGrade = (obstacle.life / obstacle.totalLife) * 5 -- bcz we have 5 stripes
+        obstacle.lifeInGradesSprite = animationService.newSprite(displayGroup, lifeSheet, lifeAnimSequeunce)
+        obstacle.lifeInGradesSprite.x = obstacle.x
+        obstacle.lifeInGradesSprite.y = obstacle.y
         obstacle.lifeInGradesSprite:setFrame(6)
         obstacle.lifeInGradesSprite:play();
 
         -- collision bounds
-        obstacle.contentBound.x=obstacle.x
-        obstacle.contentBound.y=obstacle.y
-        obstacle.contentBound.r=obstacle.sprite.path.radius
+        obstacle.contentBound.x = obstacle.x
+        obstacle.contentBound.y = obstacle.y
+        obstacle.contentBound.r = obstacle.sprite.path.radius
     ---------------------------
 
         -- init emmiter
-        emitterProperties={ name="onDeath", x=obstacle.x,y=obstacle.y, displayGroup=displayGroup,xVar = 30, yVar = 40, 
+        emitterProperties = { name="onDeath", x=obstacle.x,y=obstacle.y, displayGroup=displayGroup,xVar = 30, yVar = 40, 
                               particlePath={assetName.dustParticle}, emissionRate = 1, count = 10,  life = 1, isRadial = true,  
                               vX = 0,vXVar = 200, vY = 0, vYVar = 200, shouldFadeOut = true,}
-        obstacle.emitter=particleSystem.new(emitterProperties)
+        obstacle.emitter = particleSystem.new(emitterProperties)
     end
+
     return obstacle
 end
 

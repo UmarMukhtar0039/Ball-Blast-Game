@@ -10,10 +10,6 @@ local collisionHandler = require("helperScripts.collisionHandler")
 local printDebugStmt = require("helperScripts.printDebugStmt")
 local soundManager = require("soundManager")
 local preferenceHandler=require("helperScripts.preferenceHandler")
-local gameplayManager=require("gameplayManager")
-local particleSystem=require("helperScripts.particleSystem")
-local assetName=require("helperScripts.assetName")
-
 
 ---------local vars---------
 local width = display.contentWidth
@@ -29,16 +25,12 @@ local xPositions -- of obstacles
 local bullets -- bullets queue that contains bullets on screen
 local bulletsPool-- pool that will contain prespawned bullets
 local finishTimer, finishTimeLimit -- time limit to triggerFinish
-local confettiEmitterLeft -- Emitter that will emit from left side of screen
-local confettiEmitterRight --Emitter that will emit from right side of screen
-
 
 ---------displayGroups---------
 local masterGroup -- will contain all displayGroups
 local playerGroup 
 local obstacleGroup 
 local bulletGroup
-local UIGroup -- displayGroup for UI Elements
 ---------fwd references---------
 local updatePlayer -- function that will call player's update function
 local updateObstacles -- function that will call obstacle's update function
@@ -59,20 +51,12 @@ local function update()
 		return
 	end
 
-	if gameWorld.gameState == "suspended" then
-		if confettiEmitterLeft and confettiEmitterRight then
-			confettiEmitterLeft:update(dt)
-			confettiEmitterRight:update(dt)
-		end
-
-		return
+	if gameWorld.gameState == "ready" then
+		updateObstacles(dt)
+		updatePlayer(dt)
+		updateBullets(dt)
+		soundManager.update(dt)
 	end
-
-	gameplayManager.update()	
-	updateObstacles(dt)
-	updatePlayer(dt)
-	updateBullets(dt)
-	soundManager.update(dt)	
 end
 
 ------------------------
@@ -92,7 +76,7 @@ function updateObstacles(dt)
 
 	-- update obstacles 
 	for i=#obstacles,1,-1 do
-		obstacles[i]:update(dt)	
+		obstacles[i]:update(player.VY, dt)	
 		
 		-- checking left and rightWall collision
 		if collisionHandler.hasCollided(obstacles[i], leftWall) then
@@ -128,7 +112,7 @@ function updatePlayer(dt)
 	-- checking obstacle and player collision
 	for i=1,#obstacles do
 		if collisionHandler.hasCollided(player,obstacles[i]) then
-			gameWorld.gameState = "triggerFinish"			
+			gameWorld.gameState = "triggerFinish"
 			break
 		end		
 	end
@@ -180,40 +164,15 @@ end
 
 -- called to make a gameOverMenu menu
 function makeGameOverMenu()
-	local bestScore = player.score
-	
-	if preferenceHandler.get("bestScore")<player.score then
-		preferenceHandler.set("bestScore",bestScore)
-		
-		--Making emmiters--------------------
-		-- Emit from left Side
-		confettiEmitterLeft=particleSystem.new({name="HighScore",displayGroup=UIGroup,count=50,emissionRate=1,startColor={r=1,g=1,b=1,a=1},angle=60,
-		colorVarStart={{r=0,g=1,b=1,a=1},{r=1,g=0,b=0,a=1},{r=0,b=1,g=1,a=1},{r=0,b=1,g=0,a=1},{r=0,b=0,g=1,a=1},{r=1,b=0,g=1,a=1},{r=1,b=1,g=0,a=1}}, 
-		x=10,y=height-200,xVar=100,life=10, yVar=300, vX=200, vxVar=250, vY=-300, vYVar=-300,gravity=250,
-		particlePath={assetName.confettiParticle1,assetName.confettiParticle2,assetName.confettiParticle3}})
 
-		-- Emit from right side
-		confettiEmitterRight=particleSystem.new({name="HighScore",displayGroup=UIGroup,count=50,emissionRate=1,startColor={r=1,g=1,b=1,a=1},
-			colorVarStart={{r=0,g=1,b=1,a=1},{r=1,g=0,b=0,a=1},{r=0,b=1,g=1,a=1},{r=0,b=1,g=0,a=1},{r=0,b=0,g=1,a=1},{r=1,b=0,g=1,a=1},{r=1,b=1,g=0,a=1}}, 
-			x=width-10,y=height-300,xVar=100,life=10, yVar=300, vX=-200, vxVar=-250, vY=-300, vYVar=-300,gravity=250,
-			particlePath={assetName.confettiParticle1,assetName.confettiParticle2,assetName.confettiParticle3}})		
-		---------------------------------------
-		--forcing single emission
-		confettiEmitterLeft.forceSingleEmission=true
-		confettiEmitterRight.forceSingleEmission=true			
-	end
-	
-	printDebugStmt.print(" HighScore: "..bestScore)
-	printDebugStmt.print("playerScore:"..player.score)
-
-	local menuBox = display.newRect(UIGroup, display.contentCenterX, display.contentCenterY-400 , 400, 400) -- box to be displayed+
+	local menuBox = display.newRect(obstacleGroup, display.contentCenterX, display.contentCenterY , 400, 400) -- box to be displayed+
 	menuBox.alpha = 0.2 
 	
-	local menuText = display.newText(UIGroup,"GameOver", menuBox.x, menuBox.y - 50) -- title
+	local menuText = display.newText(obstacleGroup,"GameOver", menuBox.x, menuBox.y - 50) -- title
 	
 	local function gotoMainMenu( ) -- on tapping on resume Button we want to goto gameWorld screen
-		menuText:removeEventListener("tap", gotoMainMenu) -- remove listeners after removing the button
-		composer.gotoScene("Screens.mainMenu", {effect = "fade", params = {callingScene="gameWorld"}})
+		menuText:removeEventListener("tap", gotoMainMenu) -- remove listeners after removing the button	
+		composer.gotoScene("mainMenu", {effect = "fade", params = {callingScene="gameWorld"}})
 	end
 
 	menuText:addEventListener("tap", gotoMainMenu)	
@@ -238,21 +197,21 @@ end
 
 -- init of gameWorld
 function gameWorld:create(event)
+	
+	printDebugStmt.print("GW: create")	
+	print("GW: calling Scene "..event.params.callingScene)
 	composer.removeScene(event.params.callingScene) -- remove the screen from where gotoScreen was called
 	--init all Display Groups
 	masterGroup = display.newGroup()
 	playerGroup = display.newGroup()
 	obstacleGroup = display.newGroup()
 	bulletGroup = display.newGroup()
-	UIGroup = display.newGroup()
 	masterGroup:insert(playerGroup)
 	masterGroup:insert(obstacleGroup)
 	masterGroup:insert(bulletGroup)
 
-
 	local sceneGroup = self.view
 	sceneGroup:insert(masterGroup)
-	sceneGroup:insert(UIGroup)
 
 	-- init background
 	leftWall = {}
@@ -263,25 +222,20 @@ function gameWorld:create(event)
 	-- init player
 	playerMaker.displayGroup = playerGroup
 	player = playerMaker.new("something", width * 0.5, height * 0.75) -- gets an object i.e. player 
-	
-	--init gameplayManager
-	obstacles = {} -- table that contains all the obstacles
+	bullets = {} -- bullets table will contain display object and velocity
 
-	gameplayManager.displayGroup=UIGroup
-	gameplayManager.init(player,obstacles)
-	
 	-- init obstacle
 	xPositions = { 100, 300, 500, 650}
 	obstacleSpawnTimer = 0
-	obstacleSpawnTimeLimit = 2
+	obstacleSpawnTimeLimit = 5
 	obstacleMaker.displayGroup = obstacleGroup
-	obstacleMaker.player = player -- give reference of player to all obstacles table
+	obstacles = {} -- table that contains all the obstacles
 
 	--init bullets vars-------------
 	bulletTimer = 0
-	bulletTimeLimit = 0.1 
+	bulletTimeLimit = 0.2 
 	bulletMaker.displayGroup = bulletGroup
-	bullets = {} -- bullets table will contain display object and velocity
+	bullets = {}
 	bulletsPool = {}
 
 	-- spawning bullets and pooling them in bullet pool
@@ -294,20 +248,21 @@ function gameWorld:create(event)
 	gameWorld.gameState = "ready" -- initially the game state will by ready
 
 	-- initialize soundManager
-	soundManager.init(player)
-
+	soundManager.init()
+	
 	Runtime:addEventListener("key",onKeyEvent)
 	Runtime:addEventListener("enterFrame", update)
 end
 
 ------------------------
 -- called from external script when this scene is destroyed
-function gameWorld:destroy(event)
+function gameWorld:destory(event)
+	printDebugStmt.print("GW: destroy")
 	Runtime:removeEventListener("enterFrame",update)
 	Runtime:removeEventListener("key", onKeyEvent)
 end
 
 gameWorld:addEventListener("create", gameWorld)
-gameWorld:addEventListener("destroy", gameWorld)
+gameWorld:addEventListener("destory", gameWorld)
 
 return gameWorld

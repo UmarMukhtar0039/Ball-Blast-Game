@@ -190,7 +190,6 @@ local counter=0
 --for each emitter in the programme, the update function should be called explicitly
 --NOTE: the OPTIONAL worldTranslate table is PROJECT-SPECIFIC (eg. in ForestRun). Specifiying these values can allow for relative motion to be applied to individual particles. 
 function particleSystem:update(dt,worldTranslation)
-	-- printDebugStmt.print("Emmiter"..self.name.." Updating")
 
 	--only if the current emitter object is running in highPerformanceMode, decide if the execution needs to be skipped and make a record of the dt value for future use. 
 	if(self.highPerformanceMode)then
