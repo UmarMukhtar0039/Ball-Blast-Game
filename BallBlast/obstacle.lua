@@ -6,6 +6,7 @@ local obstacle = {
 local typesMap = require("obstacleTypesMap")
 local particleSystem = require("helperScripts.particleSystem")
 local obstacle_mt = {__index = obstacle}
+local soundManager=require("soundManager")
 ---------------------------
 
 -- creates a new instance
@@ -29,7 +30,6 @@ function obstacle.new(type, x, y)
         isAlive = true, -- used to indicate if object is in active state or not, in-active state is when the obstacle life becomes 0
         isSensor = false, -- to sensor means it should not respond to collision
         scoreAmount = nil, -- amount of score that will be added to player's current score after obstacle is destroyed
-        hasScored = false,
     }
 
     newObstacle = typesMap.makeObstacle(newObstacle, obstacle.displayGroup)
@@ -95,6 +95,7 @@ function obstacle.update(self, dt)
         self.isSensor = true
         obstacle.player.score=obstacle.player.score+self.scoreAmount -- incrementing player's score when obstacle is not alive
         obstacle.player.lastDestroyedObstacle=self -- giving reference of last obstacle that was destroyed by player
+        soundManager.playObstacleDeathSound()
     end
 
     self:updateBound()

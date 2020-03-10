@@ -1,10 +1,26 @@
-local preferenceHandler=require("helperScripts.preferenceHandler")
-preferenceHandler.init() -- initializing game box that will be initialized once bcz main script only execute once
-
-local lC = preferenceHandler.get("launchCount")
-preferenceHandler.set("launchCount",lC+1) -- incrementing launch count every time the game is launched
-
-
 local composer = require("composer")
+local soundManager=require("soundManager")
+local preferenceHandler=require("helperScripts.preferenceHandler")
+local deltaTime=require("helperScripts.deltaTime")
 
+
+-----------------------
+-- update function of main
+local function update()
+	local dt=deltaTime.getDelta()
+
+	soundManager.update(dt)
+end
+
+-----------------------
+
+preferenceHandler.init() -- initializing game box that will be initialized once bcz main script only execute once
+preferenceHandler.set("launchCount",preferenceHandler.get("launchCount")+1) -- incrementing launch count every time the game is launched
+
+-- initialize soundManager
+soundManager.init()
+
+-- go to menu screen
 composer.gotoScene("Screens.mainMenu",{ params = {callingScene="nil"}})
+
+Runtime:addEventListener("enterFrame",update)

@@ -1,6 +1,7 @@
 local composer = require("composer")
 local mainMenu = composer.newScene()
 
+local soundManager=require("soundManager")
 local printDebugStmt = require("helperScripts.printDebugStmt")
 local assetName = require("helperScripts.assetName")
 
@@ -13,6 +14,7 @@ local makeMainMenu
 ---------------------------
 function mainMenu:create(event)
 	composer.removeScene(event.params.callingScene)
+	soundManager.playMainMenuBackgroundMusic()	
 
 	displayGroup = display.newGroup()
 	local mainMenuGroup = self.view
@@ -23,6 +25,7 @@ end
 ---------------------------
 -- called when this scene is destroyed
 function mainMenu:destroy(event)
+	soundManager.stopBackgroundMusic()
 end
 ---------------------------
 

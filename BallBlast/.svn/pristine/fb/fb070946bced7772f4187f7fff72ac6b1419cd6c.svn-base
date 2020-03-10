@@ -1,0 +1,10 @@
+local preferenceHandler=require("helperScripts.preferenceHandler")
+preferenceHandler.init() -- initializing game box that will be initialized once bcz main script only execute once
+
+local lC = preferenceHandler.get("launchCount")
+preferenceHandler.set("launchCount",lC+1) -- incrementing launch count every time the game is launched
+
+
+local composer = require("composer")
+
+composer.gotoScene("mainMenu",{ params = {callingScene="nil"}})

@@ -18,7 +18,6 @@ function player.new(type, x, y)
 		--collision properties
 		contentBound = {xMin = nil, yMin = nil, xMax = nil, yMax = nil, width = nil, height = nil},
 		lastDestoryedObstacle=nil, -- keeps reference of last destroyed obstacle by player, gets a reference in obstacle's script 		
-
 	}
 
 	newPlayer = typesMap.makePlayer(newPlayer, player.displayGroup) -- make object's view based on its type

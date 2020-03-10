@@ -223,7 +223,7 @@ local function moveMouse(event)
 end
 
 -----------------------------
-local function update()		
+local function update()
 	dt=deltaTime.getDelta()
     local function updateMenuInFocus()
     	--update the alpha value for fadeIn if alpha was <1

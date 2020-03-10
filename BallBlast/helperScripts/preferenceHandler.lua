@@ -143,7 +143,7 @@ function preferenceHandler.init()
 	-- box:set("lastSelectedBg","bg1")
 	-- box:set("isPipe5Purchased",false)
 	-- box:set("isPipe6Purchased",false)
-
+	box:set("bestScore",0)
 	box:save()
 end
 

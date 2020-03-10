@@ -1,0 +1,62 @@
+local soundManager = {}
+
+local runtime
+
+-- bullet's sound vars
+local bulletSound1
+local bulletSound2
+local bulletSound3
+local bulletSoundTime
+local bulletSoundTimeGap
+local playBulletSound
+
+-- obstacle's sound
+
+-------------------
+
+function soundManager.init()
+	
+	runtime = 0	
+
+	-- bullet sound init
+	bulletSound1=audio.loadSound("assets/sounds/".."bulletSound1.mp3")
+	bulletSound2=audio.loadSound("assets/sounds/".."bulletSound2.mp3")
+	bulletSound3=audio.loadSound("assets/sounds/".."bulletSound3.mp3")
+	bulletSoundTimeGap=0.45 -- in secs
+	bulletSoundTime=-bulletSoundTimeGap
+	playBulletSound()
+end
+
+-------------------
+
+function soundManager.update( dt )
+	runtime = runtime + dt -- in seconds
+
+	if runtime - bulletSoundTime > bulletSoundTimeGap then
+		playBulletSound()
+	end
+end
+
+-------------------
+
+function playBulletSound()
+	local selector=math.random(3)
+	local channel
+	if selector == 1 then -- select which audio to play
+		channel = audio.play(bulletSound1)
+	elseif selector ==2 then
+		channel = audio.play(bulletSound2)
+	else
+		channel = audio.play(bulletSound3)
+	end
+	
+	audio.setVolume(0.1,channel) -- set audio's volume on  current channel range : [0-1]
+	
+	-- channel.setVolume = 1
+	bulletSoundTime = runtime
+	
+end
+
+-------------------
+
+return soundManager

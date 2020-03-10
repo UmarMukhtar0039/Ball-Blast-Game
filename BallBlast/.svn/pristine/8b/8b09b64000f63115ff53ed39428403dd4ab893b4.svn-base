@@ -1,0 +1,67 @@
+local composer = require("composer")
+local mainMenu = composer.newScene()
+
+local printDebugStmt = require("helperScripts.printDebugStmt")
+local assetName = require("helperScripts.assetName")
+
+--------local Variables--------
+local displayGroup
+
+--------Fwd References--------
+local removeUI -- function to remove a complete UI group
+local makeMainMenu
+
+function mainMenu:create(event)
+	composer.removeScene(event.params.callingScene)
+
+	displayGroup = display.newGroup()
+	local mainMenuGroup = self.view
+	mainMenuGroup:insert(displayGroup)
+	makeMainMenu()
+end
+
+function mainMenu:destroy(event)
+end
+
+-- called from external script to make a pause menu
+function makeMainMenu()
+
+	local menuBox = display.newRect(displayGroup, display.contentCenterX, display.contentCenterY , 400, 400)
+	menuBox.alpha = 0.2
+	
+	-- Title of Pause Menu
+	local pauseText = display.newText(displayGroup,"Main Menu", menuBox.x, menuBox.y - 250 )
+	-- pauseMenuDG[#pauseMenuDG+1] = title
+	
+	-- Text in Menu
+	local menuText = display.newText(displayGroup,"Tap to Play", menuBox.x, menuBox.y - 50)
+	-- pauseMenuDG[#pauseMenuDG+1] = menuText
+	
+	local resumeButton = display.newImage(displayGroup,assetName.playButton , menuBox.x, menuBox.y + 80)
+
+	local function resumeGame( ) -- on tapping on resume Button we want to goto gameWorld screen
+		resumeButton:removeEventListener("tap", resumeGame) -- remove listeners after removing the button	
+		composer.gotoScene("gameWorld", {effect = "fade", time = 800, params = {callingScene="mainMenu"}})
+	end
+
+	resumeButton:addEventListener("tap", resumeGame)	
+end
+
+------------------------
+
+-- -- this function can remove a particular UI group
+-- function removeUI()
+-- 	for i=#group,1,-1 do
+-- 		local temp = table.remove( group,i )
+-- 		temp:removeSelf()
+-- 		temp = nil
+-- 	end
+-- end
+
+------------------------
+
+mainMenu:addEventListener("create",mainMenu) -- called when we create screen
+mainMenu:addEventListener("destroy", mainMenu) -- called when we destroy screen
+------------------------
+
+return mainMenu

@@ -60,19 +60,15 @@ local function update()
 	end
 
 	if gameWorld.gameState == "suspended" then
-		if confettiEmitterLeft and confettiEmitterRight then
 			confettiEmitterLeft:update(dt)
 			confettiEmitterRight:update(dt)
-		end
-
 		return
 	end
 
 	gameplayManager.update()	
 	updateObstacles(dt)
 	updatePlayer(dt)
-	updateBullets(dt)
-	soundManager.update(dt)	
+	updateBullets(dt)	
 end
 
 ------------------------
@@ -145,6 +141,7 @@ function updateBullets(dt)
 		bullets[#bullets].x = player.x
 		bullets[#bullets].y = player.y - 10
 		bulletTimer = 0
+		soundManager.playBulletSound()--now play bullet Shoot sound
 	end
 
 	-- updating bullets
@@ -184,20 +181,7 @@ function makeGameOverMenu()
 	
 	if preferenceHandler.get("bestScore")<player.score then
 		preferenceHandler.set("bestScore",bestScore)
-		
-		--Making emmiters--------------------
-		-- Emit from left Side
-		confettiEmitterLeft=particleSystem.new({name="HighScore",displayGroup=UIGroup,count=50,emissionRate=1,startColor={r=1,g=1,b=1,a=1},angle=60,
-		colorVarStart={{r=0,g=1,b=1,a=1},{r=1,g=0,b=0,a=1},{r=0,b=1,g=1,a=1},{r=0,b=1,g=0,a=1},{r=0,b=0,g=1,a=1},{r=1,b=0,g=1,a=1},{r=1,b=1,g=0,a=1}}, 
-		x=10,y=height-200,xVar=100,life=10, yVar=300, vX=200, vxVar=250, vY=-300, vYVar=-300,gravity=250,
-		particlePath={assetName.confettiParticle1,assetName.confettiParticle2,assetName.confettiParticle3}})
 
-		-- Emit from right side
-		confettiEmitterRight=particleSystem.new({name="HighScore",displayGroup=UIGroup,count=50,emissionRate=1,startColor={r=1,g=1,b=1,a=1},
-			colorVarStart={{r=0,g=1,b=1,a=1},{r=1,g=0,b=0,a=1},{r=0,b=1,g=1,a=1},{r=0,b=1,g=0,a=1},{r=0,b=0,g=1,a=1},{r=1,b=0,g=1,a=1},{r=1,b=1,g=0,a=1}}, 
-			x=width-10,y=height-300,xVar=100,life=10, yVar=300, vX=-200, vxVar=-250, vY=-300, vYVar=-300,gravity=250,
-			particlePath={assetName.confettiParticle1,assetName.confettiParticle2,assetName.confettiParticle3}})		
-		---------------------------------------
 		--forcing single emission
 		confettiEmitterLeft.forceSingleEmission=true
 		confettiEmitterRight.forceSingleEmission=true			
@@ -273,7 +257,7 @@ function gameWorld:create(event)
 	-- init obstacle
 	xPositions = { 100, 300, 500, 650}
 	obstacleSpawnTimer = 0
-	obstacleSpawnTimeLimit = 2
+	obstacleSpawnTimeLimit = 0.5
 	obstacleMaker.displayGroup = obstacleGroup
 	obstacleMaker.player = player -- give reference of player to all obstacles table
 
@@ -293,8 +277,24 @@ function gameWorld:create(event)
 	finishTimeLimit = 2
 	gameWorld.gameState = "ready" -- initially the game state will by ready
 
-	-- initialize soundManager
-	soundManager.init(player)
+
+
+	--Making emmiters--------------------
+	-- Emit from left Side of screen
+	confettiEmitterLeft=particleSystem.new({name="HighScore",displayGroup=UIGroup,count=15,emissionRate=1,startColor={r=1,g=1,b=1,a=1},angle=60,
+	colorVarStart={{r=0,g=1,b=1,a=1},{r=1,g=0,b=0,a=1},{r=0,b=1,g=1,a=1},{r=0,b=1,g=0,a=1},{r=0,b=0,g=1,a=1},{r=1,b=0,g=1,a=1},{r=1,b=1,g=0,a=1}}, 
+	x=10,y=height-200,xVar=100,life=3, yVar=300, vX=400, vxVar=250, vY=-1000, vYVar=300,gravity=800,
+	particlePath={assetName.confettiParticle1,assetName.confettiParticle2,assetName.confettiParticle3}})
+
+	-- Emit from right side of screen
+	confettiEmitterRight=particleSystem.new({name="HighScore",displayGroup=UIGroup,count=15,emissionRate=1,startColor={r=1,g=1,b=1,a=1},
+		colorVarStart={{r=0,g=1,b=1,a=1},{r=1,g=0,b=0,a=1},{r=0,b=1,g=1,a=1},{r=0,b=1,g=0,a=1},{r=0,b=0,g=1,a=1},{r=1,b=0,g=1,a=1},{r=1,b=1,g=0,a=1}}, 
+		x=width-10,y=height-300,xVar=100,life=3, yVar=300, vX=-400, vxVar=-250, vY=-1000, vYVar=300,gravity=800,
+		particlePath={assetName.confettiParticle1,assetName.confettiParticle2,assetName.confettiParticle3}})		
+	---------------------------------------
+
+	-- playBackGround music sound
+	soundManager.playBackgroundMusic()
 
 	Runtime:addEventListener("key",onKeyEvent)
 	Runtime:addEventListener("enterFrame", update)
@@ -303,6 +303,7 @@ end
 ------------------------
 -- called from external script when this scene is destroyed
 function gameWorld:destroy(event)
+	soundManager.stopBackgroundMusic()
 	Runtime:removeEventListener("enterFrame",update)
 	Runtime:removeEventListener("key", onKeyEvent)
 end
