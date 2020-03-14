@@ -11,7 +11,7 @@ function bullet.new(x,y)
 	x = x,  y = y,
 	VX = 0, VY = -1400, 
 	removeMe = false,
-	damage = 100,--20, -- amount of damage on hitting obstacle
+	damage = 20,--20, -- amount of damage on hitting obstacle
 	sprite = display.newRect(bullet.displayGroup, x, y, 10,10),
 	isSensor = false
 	}

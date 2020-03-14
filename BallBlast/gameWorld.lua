@@ -13,7 +13,8 @@ local preferenceHandler=require("helperScripts.preferenceHandler")
 local gameplayManager=require("gameplayManager")
 local particleSystem=require("helperScripts.particleSystem")
 local assetName=require("helperScripts.assetName")
-
+local inGameUI=require("inGameUI")
+local messageService=require("helperScripts.messageService")
 
 ---------local vars---------
 local width = display.contentWidth
@@ -31,7 +32,10 @@ local bulletsPool-- pool that will contain prespawned bullets
 local finishTimer, finishTimeLimit -- time limit to triggerFinish
 local confettiEmitterLeft -- Emitter that will emit from left side of screen
 local confettiEmitterRight --Emitter that will emit from right side of screen
-
+local speakers -- contains refernce of speakers in the game (for proximity sounds)
+local readyTimer
+local readyTimeLimit -- time after which game state will be set to running
+local readyText
 
 ---------displayGroups---------
 local masterGroup -- will contain all displayGroups
@@ -44,6 +48,7 @@ local updatePlayer -- function that will call player's update function
 local updateObstacles -- function that will call obstacle's update function
 local updateBullets
 local makeGameOverMenu
+local playProximitySounds -- function to play ProximitySounds
 ------------------------
 
 -- update of gameWorld
@@ -65,10 +70,22 @@ local function update()
 		return
 	end
 
+	if gameWorld.gameState=="ready" then
+		readyTimer=readyTimer+dt
+
+		-- readyText.text=math.round(readyTimer)
+		if readyTimer>=readyTimeLimit then
+			printDebugStmt.print("running")
+			gameWorld.gameState="running"
+		end
+		return
+	end
+
 	gameplayManager.update()	
 	updateObstacles(dt)
 	updatePlayer(dt)
 	updateBullets(dt)	
+	playProximitySounds()
 end
 
 ------------------------
@@ -80,7 +97,7 @@ function updateObstacles(dt)
 	if obstacleSpawnTimer > obstacleSpawnTimeLimit then -- spawning should begin
 		--creating new obstacle and adding it to the obstacles queue
 		local selector = math.random(#xPositions) -- select any random position on x-axis
-		obstacles[#obstacles+1] = obstacleMaker.new("circle", xPositions[selector], 100) 
+		obstacles[#obstacles+1] = obstacleMaker.new("circle", xPositions[selector], 0) 
 	 	obstacleSpawnTimer = 0 -- reset timer
 	end
 
@@ -104,8 +121,10 @@ function updateObstacles(dt)
 		-- checking collision of obstacle with bullets
 		for j=1,#bullets do
 			if collisionHandler.circlePoint(obstacles[i], bullets[j]) then-- circle point collison
+				-- bullet has collided with obstacle
 				obstacles[i].life = obstacles[i].life - bullets[j].damage -- reduce obstacles life on collision
 				bullets[j]:disableBullet()
+				soundManager.playBulletHitSound(obstacles[i])
 			end
 		end
 
@@ -158,6 +177,22 @@ end
 
 ------------------------
 
+function playProximitySounds()
+	local infinity=300
+	local minDisSQ= (player.x-speakers[1].x)^2 + (player.y-speakers[1].y)^2
+	local infinitySQ=infinity^2
+	
+	for i=1,#speakers do
+		local minDisPlayerSQ=(player.x-speakers[i].x)^2 + (player.y-speakers[i].y)^2
+		if minDisSQ> minDisPlayerSQ then
+			minDisSQ=minDisPlayerSQ
+		end
+	end
+	soundManager.setBackgroundVolume(minDisSQ, infinitySQ)
+end
+
+------------------------
+
 -- setting player's direction on pressing keys
 local function onKeyEvent(event)
 	if event.phase == "down" then
@@ -185,10 +220,9 @@ function makeGameOverMenu()
 		--forcing single emission
 		confettiEmitterLeft.forceSingleEmission=true
 		confettiEmitterRight.forceSingleEmission=true			
+		-- printDebugStmt.print(" HighScore: "..bestScore)
+		
 	end
-	
-	printDebugStmt.print(" HighScore: "..bestScore)
-	printDebugStmt.print("playerScore:"..player.score)
 
 	local menuBox = display.newRect(UIGroup, display.contentCenterX, display.contentCenterY-400 , 400, 400) -- box to be displayed+
 	menuBox.alpha = 0.2 
@@ -209,8 +243,8 @@ local function initBackground()
 	leftWall.contentBound = {xMin = -0.5, xMax = 0, yMin = 0, yMax = height} -- contentBound of left wall
 	rightWall.contentBound = {xMin = width, xMax = width+0.5 , yMin = 0, yMax = height} -- contentBound of right wall
 	base.contentBound = {xMin = 0, xMax = width, yMin = height * 0.80, yMax = height} -- contentBound of base
-	base.image = display.newRect(obstacleGroup, (base.contentBound.xMin+base.contentBound.xMax)*0.5,(base.contentBound.yMin+base.contentBound.yMax)*0.5, base.contentBound.xMax-base.contentBound.xMin, base.contentBound.yMax-base.contentBound.yMin)
-	
+	-- base.image = display.newRect(obstacleGroup, (base.contentBound.xMin+base.contentBound.xMax)*0.5,(base.contentBound.yMin+base.contentBound.yMax)*0.5, base.contentBound.xMax-base.contentBound.xMin, base.contentBound.yMax-base.contentBound.yMin)
+	-- base.image.alpha=0.3
 	--For Debug only--
 	-- leftWall.debugImage = display.newRect(obstacleGroup,(leftWall.contentBound.xMin+leftWall.contentBound.xMax)*0.5, (leftWall.contentBound.yMin + leftWall.contentBound.yMax)*0.5, leftWall.contentBound.xMax - leftWall.contentBound.xMin, leftWall.contentBound.yMax - leftWall.contentBound.yMin)
 	-- leftWall.debugImage:setFillColor(1,0,0)
@@ -257,7 +291,7 @@ function gameWorld:create(event)
 	-- init obstacle
 	xPositions = { 100, 300, 500, 650}
 	obstacleSpawnTimer = 0
-	obstacleSpawnTimeLimit = 0.5
+	obstacleSpawnTimeLimit = 1.5
 	obstacleMaker.displayGroup = obstacleGroup
 	obstacleMaker.player = player -- give reference of player to all obstacles table
 
@@ -283,18 +317,36 @@ function gameWorld:create(event)
 	-- Emit from left Side of screen
 	confettiEmitterLeft=particleSystem.new({name="HighScore",displayGroup=UIGroup,count=15,emissionRate=1,startColor={r=1,g=1,b=1,a=1},angle=60,
 	colorVarStart={{r=0,g=1,b=1,a=1},{r=1,g=0,b=0,a=1},{r=0,b=1,g=1,a=1},{r=0,b=1,g=0,a=1},{r=0,b=0,g=1,a=1},{r=1,b=0,g=1,a=1},{r=1,b=1,g=0,a=1}}, 
-	x=10,y=height-200,xVar=100,life=3, yVar=300, vX=400, vxVar=250, vY=-1000, vYVar=300,gravity=800,
+	x=10,y=height-200,xVar=100,life=3, yVar=300, vX=200, vxVar=250, vY=-800, vYVar=300,gravity=1000,
 	particlePath={assetName.confettiParticle1,assetName.confettiParticle2,assetName.confettiParticle3}})
 
 	-- Emit from right side of screen
 	confettiEmitterRight=particleSystem.new({name="HighScore",displayGroup=UIGroup,count=15,emissionRate=1,startColor={r=1,g=1,b=1,a=1},
 		colorVarStart={{r=0,g=1,b=1,a=1},{r=1,g=0,b=0,a=1},{r=0,b=1,g=1,a=1},{r=0,b=1,g=0,a=1},{r=0,b=0,g=1,a=1},{r=1,b=0,g=1,a=1},{r=1,b=1,g=0,a=1}}, 
-		x=width-10,y=height-300,xVar=100,life=3, yVar=300, vX=-400, vxVar=-250, vY=-1000, vYVar=300,gravity=800,
+		x=width-10,y=height-300,xVar=100,life=3, yVar=300, vX=-200, vxVar=250, vY=-800, vYVar=300,gravity=1000,
 		particlePath={assetName.confettiParticle1,assetName.confettiParticle2,assetName.confettiParticle3}})		
 	---------------------------------------
-
+	
+	speakers={}
+	speakers[#speakers+1]=display.newImage(UIGroup,assetName.speaker,50,850)
+	speakers[#speakers+1]=display.newImage(UIGroup,assetName.speaker,width-50,850)
+	
 	-- playBackGround music sound
 	soundManager.playBackgroundMusic()
+
+	-- init inGameUI and makeControlMenu
+	inGameUI.displayGroup=UIGroup 
+	inGameUI.init(gameWorld,player)
+	inGameUI.makeControlMenu()
+
+	-- time after which game state will be set to running
+	readyTimer=0
+	readyTimeLimit=3
+
+	messageService.showMessage(UIGroup,{text=3,x=display.contentCenterX,y=display.contentCenterY,time = 1000, color={r=1,g=0,b=0}})						
+	messageService.showMessage(UIGroup,{text=2,x=display.contentCenterX,y=display.contentCenterY,time = 1000, color={r=1,g=0,b=0}})						
+	messageService.showMessage(UIGroup,{text=1,x=display.contentCenterX,y=display.contentCenterY,time = 1000, color={r=1,g=0,b=0}})						
+	messageService.showMessage(UIGroup,{text="GO!",x=display.contentCenterX,y=display.contentCenterY,time = 1000, color={r=1,g=0,b=0}})						
 
 	Runtime:addEventListener("key",onKeyEvent)
 	Runtime:addEventListener("enterFrame", update)

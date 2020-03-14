@@ -5,8 +5,8 @@ local animationService = require("helperScripts.animationService")
 local particleSystem = require("helperScripts.particleSystem")
 
 function obstacleTypesMap.makeObstacle( obstacle, displayGroup )
-    local xVelocity = { -225, 0,120 , 225}
-    local varLife = {100,200,150,175}
+    local xVelocity = { -100,100,100,100}
+    local varLife = {100,100,100,100}
     local score = {50,100,75,85}
     local colour = { {r= 1,g=0,b=0}, {r=0,g=1,b=0}, {r=0,g=0,b=1},{r=1,g=0,b=1}}
     if obstacle.type == "circle" then

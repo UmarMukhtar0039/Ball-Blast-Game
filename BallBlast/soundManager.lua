@@ -2,6 +2,7 @@ local soundManager = {}
 
 local printDebugStmt = require("helperScripts.printDebugStmt")
 local assetName=require("helperScripts.assetName")
+local preferenceHandler=require("helperScripts.preferenceHandler")
 local runtime
 
 -- bullet's sound vars
@@ -9,6 +10,10 @@ local bulletSound1
 local bulletSound2
 local bulletSoundTime
 local bulletSoundTimeGap
+local bulletHitSound
+local bulletHitSoundTime
+local bulletHitSoundTimeGap
+-------------------
 
 -- obstacle's sound
 local obstacleDeathSound
@@ -27,11 +32,10 @@ local lastMainMenuMusicIndex
 local mainMenuBGMusic
 
 
-local gain={} -- can be positive or negative
-local cycleGain -- cycles b/w gain table
-local buttonGain -- increments the gain's cycle
+local gain -- can be positive or negative
 
 local setVolume
+local setPitch -- set pitch of an audio source
 
 -------------------
 
@@ -45,9 +49,13 @@ function soundManager.init()
 	bulletSoundTimeGap=0.45 -- in secs
 	bulletSoundTime=-bulletSoundTimeGap
 
+	bulletHitSound=audio.loadSound("assets/sounds/".."bulletHitSound.wav")
+	bulletHitSoundTimeGap=0.16 -- in secs
+	bulletHitSoundTime=-bulletHitSoundTimeGap
+
 	--obstacleDeathSound init
 	obstacleDeathSound=audio.loadSound("assets/sounds/".."rockBlast.wav")
-	obstacleDeathSoundTimeGap=0.4
+	obstacleDeathSoundTimeGap=0.40
 	obstacleDeathSoundTime=-obstacleDeathSoundTimeGap
 
 	-- backGroundMusic init
@@ -58,30 +66,79 @@ function soundManager.init()
 	currentMainMenuMusicIndex=1
 	lastMainMenuMusicIndex=3
 
-	-------------------
-	gain={-0.5,0,0.5}
-	cycleGain=1
-	buttonGain=display.newImage(assetName.playButton,100,1000) -- display image that will increment gain cycler
-	-- on tapping gain cycler will increment
-	local function onTap( event )
-		cycleGain=cycleGain+1
-		if cycleGain>#gain then
-			cycleGain=1
-		end
-		setVolume(volume, 1)	-- sets volume of currentChannel
+	local volumeLevel=preferenceHandler.get("volumeLevel")
+	if volumeLevel==1 then
+		gain=-0.5
+	elseif volumeLevel==2 then
+		gain=0
+	elseif volumeLevel==3 then
+		gain=0.5
 	end
 
-	buttonGain:addEventListener("tap",onTap)
-	-------------------
-	
+	if gain==nil then --this will happen when we start the game and audio was muted already i.e. volumeLevel==0
+		gain=0.5
+	end
+
 	--reserveChannel for backGroundMusics
 	audio.reserveChannels(1) -- both for backGroundMusic and mainMenu
 end
 
 
 -------------------
+function soundManager.setGain()
+	local volumeLevel=preferenceHandler.get("volumeLevel")
+	
+	if volumeLevel==1 then
+		gainPercent=-0.5
+	elseif volumeLevel==2 then
+		gainPercent=0
+	elseif volumeLevel==3 then
+		gainPercent=0.5
+	end
+
+	-- bcz we want the actual value of volume and then apply the gainPercent to it
+	local currentGain=gain
+
+	local currentVolume=audio.getVolume({channel=1})
+	local volume=currentVolume/(1+currentGain)
+
+	gain=gainPercent
+	setVolume(volume, 1)	-- sets volume of 1st Channel
+end
+
+-------------------
+
+function soundManager.setBackgroundVolume(mindis, infinity )
+	local volume=0
+	if currentMusicIndex==1 then
+		volume=0.1
+	elseif	currentMusicIndex==2 then
+		volume=0.1
+	elseif currentMusicIndex==3 then
+		volume=0.1
+	end
+
+	volume=((infinity-mindis)/infinity)*volume
+	setVolume(volume,1)
+end
+
+-------------------
+
+function soundManager.stopAllAudios( )
+	audio.stop()
+end
+-------------------
 
 function soundManager.playBackgroundMusic( )
+
+	-- don't play any sound when volumeLevel is 0
+	if preferenceHandler.get("volumeLevel") == 0 then
+		return
+	end
+	-- removing previously buffered music
+	audio.dispose(backgroundMusic)			
+	backgroundMusic=nil		
+	
 	local volume=nil
 	local seekPoint=nil
 	currentMusicIndex=currentMusicIndex+1
@@ -90,35 +147,36 @@ function soundManager.playBackgroundMusic( )
 	end
 
 	if (currentMusicIndex==1) then
-		volume=1
-		seekPoint=29
+		volume=0.1
+		seekPoint=20
 	elseif (currentMusicIndex==2) then
-		volume=1
-		seekPoint=26
+		volume=0.1
+		seekPoint=27
 	else 
-		volume=1
-		seekPoint=13
+		volume=0.1
+		seekPoint=14
 	end	
-
-	-- removing previously buffered music
-	audio.dispose(backgroundMusic)
-	backgroundMusic=nil
-
 	
 	backgroundMusic=audio.loadStream("assets/sounds/backgroundMusic"..currentMusicIndex..".wav")
 	-- play and callback's the function
 	audio.seek(seekPoint*1000, backGroundMusic)
-	audio.play(backgroundMusic,{channel=1, loop=0, 
+	local channel,src=audio.play(backgroundMusic,{channel=1, loop=0,
 		onComplete=function(event) 
 		if (event.completed) then
 			soundManager.playBackgroundMusic() -- call recursively
 		end
 	end})
+	setVolume(volume, 1)	-- sets volume of currentChannel
 end
 
 -------------------
 
-function soundManager.playMainMenuBackgroundMusic( )
+function soundManager.playMainMenuBackgroundMusic()
+	-- don't play any sound when volumeLevel is 0
+	if preferenceHandler.get("volumeLevel") == 0 then
+		return
+	end
+
 	local volume=nil
 	local seekPoint=nil
 	currentMainMenuMusicIndex=currentMainMenuMusicIndex+1
@@ -142,7 +200,7 @@ function soundManager.playMainMenuBackgroundMusic( )
 	
 	mainMenuBGMusic=audio.loadStream("assets/sounds/mainMenuBG"..currentMusicIndex..".wav")
 	-- play and callback's the function
-	audio.play(mainMenuBGMusic,{channel=1, loop=0, 
+	local channel,src=audio.play(mainMenuBGMusic,{channel=1, loop=0, 
 		onComplete=function(event) 
 		if (event.completed) then
 			soundManager.playMainMenuBackgroundMusic() -- call recursively
@@ -160,26 +218,58 @@ end
 -------------------
 -- called from external script, wherever we need to play sound
 function soundManager.playBulletSound()
+	-- don't play any sound when volumeLevel is 0
+	if preferenceHandler.get("volumeLevel") == 0 then
+		return
+	end
+	
 	if runtime - bulletSoundTime > bulletSoundTimeGap then
-		local selector=math.random(3)
-		local channel
-		if selector == 1 then -- select which audio to play
-			channel=audio.play(bulletSound1)
-		elseif selector ==2 then
-			channel=audio.play(bulletSound2)
-		end
-
-		setVolume(1,channel) -- set audio's volume on  current channel range : [0-1]		
-		-- channel.setVolume = 1
+		-- local selector=math.random(2)
+		-- if selector == 1 then -- select which audio to play
+		local channel,src=audio.play(bulletSound1)
+		-- elseif selector ==2 then
+		-- 	channel=audio.play(bulletSound2)
+		-- end
+		setVolume(0.01,channel) -- set audio's volume on  current channel range : [0-1]
+		setPitch(src,1)
 		bulletSoundTime = runtime
 	end	
 end
 
 -------------------
+-- sound played when bullet hits an obstacle
+function soundManager.playBulletHitSound(obstacle)
+	local pitch=0
+	if obstacle.VY<120 then
+	   pitch=0.25
+	elseif	obstacle.VY >120 and obstacle.VY<170 then
+		pitch=0.5
+	elseif obstacle.VY >170 and obstacle.VY<220 then
+		pitch=0.75
+	else
+		pitch=1
+	end
+
+	if runtime-bulletHitSoundTime>bulletHitSoundTimeGap then
+		local channel,src=audio.play(bulletHitSound)
+		setVolume(1,channel)
+		setPitch(src, pitch) -- if we are setting the pitch for this channel the change will reflect on all channel so manually set pitch in all other channels	
+		bulletHitSoundTime=runtime
+	end
+end
+
+
+-------------------
 -- called from external script, wherever we need to play sound
 function soundManager.playObstacleDeathSound()
+	-- don't play any sound when volumeLevel is 0
+	if preferenceHandler.get("volumeLevel") == 0 then
+		return
+	end
+
 	if runtime-obstacleDeathSoundTime>obstacleDeathSoundTimeGap then
-		local channel = audio.play(obstacleDeathSound)
+		local channel,src= audio.play(obstacleDeathSound)
+		setPitch(src,1)
 		obstacleDeathSoundTime=runtime -- reset the last played time
 	end
 end
@@ -194,12 +284,17 @@ end
 -------------------
 -- sets volume at a channel
 function setVolume( volume, channel )
-	local vol=volume+volume*gain[cycleGain] -- increases or decreases the volume
+	local vol=volume+volume*gain -- increases or decreases the volume
 	if (vol>1) then -- if adding gain increases the volume above 100% then set volume to 100% i.e. 1
 		vol=1
 	end
-	printDebugStmt.print("SM. Volume"..vol..", Gain: "..gain[cycleGain])
 	audio.setVolume(vol,{channel=channel})
+end
+
+-------------------
+
+function setPitch(src, pitch)
+	al.Source(src,al.PITCH,pitch)
 end
 
 -------------------

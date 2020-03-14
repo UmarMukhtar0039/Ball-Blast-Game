@@ -5,10 +5,12 @@ local obstacle = {
 }
 local typesMap = require("obstacleTypesMap")
 local particleSystem = require("helperScripts.particleSystem")
+local vibrationHelper=require("helperScripts.vibrationHelper")
+local printDebugStmt = require("helperScripts.printDebugStmt")
 local obstacle_mt = {__index = obstacle}
 local soundManager=require("soundManager")
 ---------------------------
-
+local acc=30
 -- creates a new instance
 function obstacle.new(type, x, y)
     local newObstacle = {
@@ -16,7 +18,7 @@ function obstacle.new(type, x, y)
         x = x,
         y = y,
         VX = nil, -- set in types map
-        VY = 200,
+        VY = 100,
         height = nil,
         width = nil,
         sprite = nil,
@@ -33,6 +35,9 @@ function obstacle.new(type, x, y)
     }
 
     newObstacle = typesMap.makeObstacle(newObstacle, obstacle.displayGroup)
+
+    -- For Debug only
+    -- newObstacle.debugSprite=display.newText(obstacle.displayGroup, newObstacle.VY, newObstacle.x+100, newObstacle.y)
 
     return setmetatable(newObstacle, obstacle_mt)
 end
@@ -63,6 +68,12 @@ function obstacle.updateImage(self)
         self.lifeInGradesSprite.alpha = 0
     end
     -- self.sprite.alpha = self.y/200 -- setting alpha w.r.t the players position, if player is at 700 it's alpha will be 1
+
+    if self.debugSprite then
+        self.debugSprite.text=self.VY
+        self.debugSprite.x=self.x+100
+        self.debugSprite.y=self.y
+    end
 end
 
 ---------------------------
@@ -75,7 +86,8 @@ end
 
 -- updating model and view of obstacle, called every frame from an external script
 function obstacle.update(self, dt)
-
+    -- self.VX=self.VX+acc*dt
+    self.VY=self.VY+acc*dt -- adding acceleration 
     self.x = self.x + self.VX  * dt
     self.y = self.y + self.VY  * dt
 
@@ -96,6 +108,7 @@ function obstacle.update(self, dt)
         obstacle.player.score=obstacle.player.score+self.scoreAmount -- incrementing player's score when obstacle is not alive
         obstacle.player.lastDestroyedObstacle=self -- giving reference of last obstacle that was destroyed by player
         soundManager.playObstacleDeathSound()
+        vibrationHelper.vibrateWithPattern({{delay=0, strength="light"}, {delay=60,strength="heavy"}, {delay=130, strength="medium"}, {delay=100, strength="light"}})
     end
 
     self:updateBound()

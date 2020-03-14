@@ -1,0 +1,21 @@
+settings = 
+{
+	orientation = 
+	{
+		default = "portrait",
+		supported = { "portrait","portraitUpsideDown", "landscapeLeft", "landscapeRight"}
+	},
+
+	android = 
+	{
+		versionCode = "10"
+	},
+
+	plugins={
+		['plugin.vibrator'] = 
+        {
+            publisherId = 'com.spiralcodestudio'
+        },
+
+    }
+}

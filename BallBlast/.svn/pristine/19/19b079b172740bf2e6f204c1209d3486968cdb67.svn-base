@@ -1,0 +1,12 @@
+{
+    "Lua.diagnostics.globals": [
+        "volume",
+        "Runtime",
+        "display",
+        "transition",
+        "audio",
+        "requrie",
+        "system",
+        "graphics"
+    ]
+}
