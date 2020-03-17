@@ -92,10 +92,10 @@ function button.newButton(id,x,y,width,height,imageGroup, imageDownPath, imageUp
 	newButton.contentBounds.yMax=newButton.y+newButton.height*0.5
 		
 	--debug display for the button(only for debug)
-	-- newButton.rect=display.newRect(imageGroup,x,y,width,height)
-	-- newButton.rect:setFillColor(0,0,0,0)
-	-- newButton.rect.strokeWidth=2
-	-- newButton.rect:setStrokeColor(0,0,2)
+	newButton.rect=display.newRect(imageGroup,x,y,width,height)
+	newButton.rect:setFillColor(0,0,0,0)
+	newButton.rect.strokeWidth=2
+	newButton.rect:setStrokeColor(0,0,2)
 
 	return setmetatable(newButton,button_mt)
 end

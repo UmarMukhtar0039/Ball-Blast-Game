@@ -149,18 +149,19 @@ local function moveKey(event)
 				--first check if the mouse is already aligned with the button in focus and then check if the button is visible, if yes perform action
 				if(collisionHandler.buttonCollision(menuInFocus.pointerImage,menuInFocus.buttons[focusedButtonIndex]) and menuInFocus.buttons[focusedButtonIndex].isButtonVisible)then
 					event.phase="began"--hack the event phase before calling the touchEvent  on the down stroke of the enter key. This is because the button script recognises "began" phase
-					menuInFocus.buttons[focusedButtonIndex]:touchEvent(event)
 					lastButtonPressed=menuInFocus.buttons[focusedButtonIndex]--set the reference for the last button pressed
+					menuInFocus.buttons[focusedButtonIndex]:touchEvent(event)
 				end
 			end
-			elseif(event.phase=="up")then
+		
+		elseif(event.phase=="up")then
 			if(event.keyName=="enter" or event.keyName=="buttonX" or event.keyName=="buttonA" or event.keyName=="button3" or event.keyName=="buttonStart")then
 				--first check if the mouse is already aligned with the button in focus and then check if the button is visible, if yes perform action
 				if(collisionHandler.buttonCollision(menuInFocus.pointerImage,menuInFocus.buttons[focusedButtonIndex]) and menuInFocus.buttons[focusedButtonIndex].isButtonVisible)then
 					event.phase="ended"--hack the event phase before calling the forceGraphicsRelease on the release of the enter key. This is because the button script recognises "ended" phase
+					lastButtonPressed=menuInFocus.buttons[focusedButtonIndex]--set the reference for the last button pressed
 					menuInFocus.buttons[focusedButtonIndex]:touchEvent(event)
 					menuInFocus.buttons[focusedButtonIndex]:forceGraphicsRelease()
-					lastButtonPressed=menuInFocus.buttons[focusedButtonIndex]--set the reference for the last button pressed
 				else--if the up event detected is outside the current button call force release graphics 
 					menuInFocus.buttons[focusedButtonIndex]:forceGraphicsRelease()
 				end
@@ -456,6 +457,7 @@ function mouseSetupHelper(self)
 	self.pointerImage=display.newImage(assetName.pointer,pointerPosition.x,pointerPosition.y)--NOTE- pointer should be at the top most layer in z-order, so no group is assigned
 	self.pointerImage.width=100
 	self.pointerImage.height=100
+	
 	--bring the pointer image on the first button of the menu, if the menu created is different from the previous one or the first menu of the game
 	--it is also checked if the user had last used the mouse or not. If the last input was from a mouse, do not set the pointerImage to the first button of the menu
 	if((previouslyFocussedMenu==nil or previouslyFocussedMenu.name~=self.name) and not isMouseInputMode)then
@@ -467,7 +469,7 @@ function mouseSetupHelper(self)
 	if(previouslyFocussedMenu~=nil and previouslyFocussedMenu.name==self.name and not isMouseInputMode)then
 		--search through all the buttons of the current menu to get the button that was last selected in the previouslyFocusedMenu.
 		for i=1, #self.buttons do
-			if(lastButtonPressed.name==self.buttons[i].name)then--place the pointer at the location of this button and break the loop
+			if(lastButtonPressed.id==self.buttons[i].id)then--place the pointer at the location of this button and break the loop
 				self.pointerImage.x=self.buttons[i].x+self.buttons[i].width*0.25
 				self.pointerImage.y=self.buttons[i].y+self.buttons[i].height*0.25
 				break

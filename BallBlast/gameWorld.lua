@@ -72,10 +72,7 @@ local function update()
 
 	if gameWorld.gameState=="ready" then
 		readyTimer=readyTimer+dt
-
-		-- readyText.text=math.round(readyTimer)
 		if readyTimer>=readyTimeLimit then
-			printDebugStmt.print("running")
 			gameWorld.gameState="running"
 		end
 		return
@@ -257,6 +254,7 @@ end
 -- init of gameWorld
 function gameWorld:create(event)
 	composer.removeScene(event.params.callingScene) -- remove the screen from where gotoScreen was called
+	
 	--init all Display Groups
 	masterGroup = display.newGroup()
 	playerGroup = display.newGroup()
@@ -333,7 +331,7 @@ function gameWorld:create(event)
 	
 	-- playBackGround music sound
 	soundManager.playBackgroundMusic()
-
+	
 	-- init inGameUI and makeControlMenu
 	inGameUI.displayGroup=UIGroup 
 	inGameUI.init(gameWorld,player)
@@ -341,12 +339,12 @@ function gameWorld:create(event)
 
 	-- time after which game state will be set to running
 	readyTimer=0
-	readyTimeLimit=3
+	readyTimeLimit=4.5
 
-	messageService.showMessage(UIGroup,{text=3,x=display.contentCenterX,y=display.contentCenterY,time = 1000, color={r=1,g=0,b=0}})						
-	messageService.showMessage(UIGroup,{text=2,x=display.contentCenterX,y=display.contentCenterY,time = 1000, color={r=1,g=0,b=0}})						
-	messageService.showMessage(UIGroup,{text=1,x=display.contentCenterX,y=display.contentCenterY,time = 1000, color={r=1,g=0,b=0}})						
-	messageService.showMessage(UIGroup,{text="GO!",x=display.contentCenterX,y=display.contentCenterY,time = 1000, color={r=1,g=0,b=0}})						
+	messageService.showMessage(UIGroup,{text=3,x=display.contentCenterX,y=display.contentCenterY,time = 1600, color={r=1,g=0,b=0}, size=200})						
+	messageService.showMessage(UIGroup,{text=2,x=display.contentCenterX,y=display.contentCenterY,time = 800, color={r=1,g=0,b=0}, size=200})						
+	messageService.showMessage(UIGroup,{text=1,x=display.contentCenterX,y=display.contentCenterY,time = 800, color={r=1,g=0,b=0}, size=200})						
+	messageService.showMessage(UIGroup,{text="GO!",x=display.contentCenterX,y=display.contentCenterY,time = 800, color={r=1,g=0,b=0}, size=200})						
 
 	Runtime:addEventListener("key",onKeyEvent)
 	Runtime:addEventListener("enterFrame", update)

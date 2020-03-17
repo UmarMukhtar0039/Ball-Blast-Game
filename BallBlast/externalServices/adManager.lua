@@ -36,10 +36,10 @@ end
 --this function should be called every time to attempt to re-obtain precedence from app42. Initing at start will not work since app42 obtains this asynchronously 
 local function fetchAdPrecedence()
 	orderTable={}
-	-- for i=1, #app42.adPrecedence do
-	-- 	orderTable[i]=app42.adPrecedence[i]
-	-- 	debugStmt.print("adManager:AdPrecedence "..orderTable[i])
-	-- end
+	for i=1, #app42.adPrecedence do
+		orderTable[i]=app42.adPrecedence[i]
+		debugStmt.print("adManager:AdPrecedence "..orderTable[i])
+	end
 	-- if no precedence table returned from app42, use default values
 	if(#orderTable==0)then
 		debugStmt.print("adManager: no precedence found on app42. Using defaults.")

@@ -49,7 +49,7 @@ function inGameUI.makeControlMenu()
 	end
     controlMenu:getItemByID("pauseButton").callbackDown=function()
 			controlMenu:destroy() -- first destroy the controlMenu
-			makePauseMenu() -- then make the pause menu
+			makePauseMenu() -- then make the pause menu                
 	end
 end
 
@@ -78,7 +78,10 @@ function makePauseMenu()
     	elseif volumeLevel==3 then
         pauseMenu:addButton("btnVolume", 350, 304, 169, 72, nil, assetName.btnSound4)
     end
-    	
+    
+    --adding keyboard support to menu
+    pauseMenu:setKeyboardSupport(true)
+
     -- adding button to scrollable plane
     local scrollContentBound={xMin=pauseMenu.x+200, xMax = pauseMenu.x+475, yMin=pauseMenu.y+250, yMax=pauseMenu.y+350}
     scrollContentBound.width=scrollContentBound.xMax-scrollContentBound.xMin
@@ -87,12 +90,11 @@ function makePauseMenu()
     pauseMenu:addButtonToScrollpane(pauseMenu:getItemByID("btnPlay"), scrollContentBound)
     pauseMenu:addButtonToScrollpane(pauseMenu:getItemByID("btnExit"), scrollContentBound)
 
-    	
     -- function callbacks
-    pauseMenu:getItemByID("scrollUp").callbackUp=function()
+    pauseMenu:getItemByID("scrollUp").callbackDown=function()
         pauseMenu:scrollY(-100)
     end
-    pauseMenu:getItemByID("scrollDown").callbackUp=function()
+    pauseMenu:getItemByID("scrollDown").callbackDown=function()
     	pauseMenu:scrollY(100)
     end
 
@@ -104,8 +106,9 @@ function makePauseMenu()
 	
     pauseMenu:getItemByID("btnExit").callbackDown=function()
 			composer.gotoScene("Screens.mainMenu", {effect = "fade", params = {callingScene="gameWorld"}})
+            pauseMenu:destroy()
 	end
-	
+
     -- on pressing the volume button the volume should be set accordingly to which button is being displayed
     pauseMenu:getItemByID("btnVolume").callbackDown=function()
  			if volumeLevel==0 then
@@ -124,8 +127,9 @@ function makePauseMenu()
  			end
 
     		pauseMenu:destroy() -- destroy the current menu
-    		makePauseMenu() -- make a new menu with the right volume button
-	end
+    		makePauseMenu() -- make a new menu with the right volume button	        
+    end
+
 end
 
 --------------------

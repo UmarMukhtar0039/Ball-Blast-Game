@@ -35,6 +35,10 @@ function preferenceHandler.init()
 	if box:get("volumeLevel")== nil then
 		box:set("volumeLevel",3)
 	end
+
+	if box:get("currentNewsVersion")== nil then
+		box:set("currentNewsVersion",1)
+	end
 	--rig prefs
 	-- box:set("didUserRate",false)
 	-- box:set("currency",100)

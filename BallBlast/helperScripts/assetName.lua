@@ -5,8 +5,13 @@ local assetName = {
 	dustParticle = "assets/".."dustParticle.png",
 
 	--GameUI----------
+	-- Mouse Pointer
+	pointer="assets/".."pointer.png",
 	--Main Menu
+	mainMenuBase="assets/".."mainMenuBase.png",
 	playButton = "assets/".."playButton.png",
+	exclamationSprite="assets/".."exclamationSprite.png",
+
 	--Pause Menu
 	baseMenu="assets/".."baseMenu.png",
 	btnSound1="assets/".."btnSound1.png",

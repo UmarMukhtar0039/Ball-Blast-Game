@@ -118,6 +118,7 @@ function soundManager.setBackgroundVolume(mindis, infinity )
 		volume=0.1
 	end
 
+	-- for proximity sounds
 	volume=((infinity-mindis)/infinity)*volume
 	setVolume(volume,1)
 end
@@ -239,6 +240,10 @@ end
 -------------------
 -- sound played when bullet hits an obstacle
 function soundManager.playBulletHitSound(obstacle)
+	if preferenceHandler.get("volumeLevel") == 0 then
+		return
+	end
+
 	local pitch=0
 	if obstacle.VY<120 then
 	   pitch=0.25
@@ -269,6 +274,7 @@ function soundManager.playObstacleDeathSound()
 
 	if runtime-obstacleDeathSoundTime>obstacleDeathSoundTimeGap then
 		local channel,src= audio.play(obstacleDeathSound)
+		setVolume(1,channel)
 		setPitch(src,1)
 		obstacleDeathSoundTime=runtime -- reset the last played time
 	end
@@ -292,7 +298,7 @@ function setVolume( volume, channel )
 end
 
 -------------------
-
+-- sets pitch of an audio source
 function setPitch(src, pitch)
 	al.Source(src,al.PITCH,pitch)
 end
