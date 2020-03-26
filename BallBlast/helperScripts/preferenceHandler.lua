@@ -39,6 +39,12 @@ function preferenceHandler.init()
 	if box:get("currentNewsVersion")== nil then
 		box:set("currentNewsVersion",1)
 	end
+
+	if box:get("playerCurrency")== nil then
+		-- debugStmt.print("preferenceHandler: initing currency to 0 ")
+		box:set("playerCurrency",0)
+	end
+
 	--rig prefs
 	-- box:set("didUserRate",false)
 	-- box:set("currency",100)

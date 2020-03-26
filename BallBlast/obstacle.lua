@@ -1,14 +1,14 @@
 local obstacle = {
-    displayGroup = nil,
-    shadowGroup = nil,
+    displayGroup = nil,shadowGroup = nil,
     player=nil, -- gets a player reference form gameWorld
 }
+
 local typesMap = require("obstacleTypesMap")
-local particleSystem = require("helperScripts.particleSystem")
 local vibrationHelper=require("helperScripts.vibrationHelper")
 local printDebugStmt = require("helperScripts.printDebugStmt")
 local obstacle_mt = {__index = obstacle}
 local soundManager=require("soundManager")
+local preferenceHandler=require("helperScripts.preferenceHandler")
 ---------------------------
 local acc=30
 -- creates a new instance
@@ -105,6 +105,8 @@ function obstacle.update(self, dt)
         self.emitter.forceSingleEmission = true
         self.isAlive = false 
         self.isSensor = true
+        obstacle.player.money=obstacle.player.money+1-- add $1 when obstacle dies
+        preferenceHandler.set("playerCurrency",obstacle.player.money)
         obstacle.player.score=obstacle.player.score+self.scoreAmount -- incrementing player's score when obstacle is not alive
         obstacle.player.lastDestroyedObstacle=self -- giving reference of last obstacle that was destroyed by player
         soundManager.playObstacleDeathSound()

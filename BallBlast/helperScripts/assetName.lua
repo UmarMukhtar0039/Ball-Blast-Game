@@ -35,6 +35,15 @@ local assetName = {
 
 	--speakers
 	speaker="assets/".."speaker.png",
+
+	--shop menu
+	shopBaseMenu="assets/".."shopBaseMenu.png",
+	mtv="mtv.ttf",
+	blankButton="assets/".."blankButton.png",
+	product1="assets/".."product1.png",
+	product2="assets/".."product2.png",
+	product3="assets/".."product3.png",
+
 }
 
 return assetName

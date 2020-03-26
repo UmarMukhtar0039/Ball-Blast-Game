@@ -1,13 +1,11 @@
 local soundManager = {}
 
 local printDebugStmt = require("helperScripts.printDebugStmt")
-local assetName=require("helperScripts.assetName")
 local preferenceHandler=require("helperScripts.preferenceHandler")
 local runtime
 
 -- bullet's sound vars
 local bulletSound1
-local bulletSound2
 local bulletSoundTime
 local bulletSoundTimeGap
 local bulletHitSound
@@ -45,7 +43,6 @@ function soundManager.init()
 
 	-- bullet sound init
 	bulletSound1=audio.loadSound("assets/sounds/".."bulletSound1.wav")
-	bulletSound2=audio.loadSound("assets/sounds/".."bulletSound2.wav")
 	bulletSoundTimeGap=0.45 -- in secs
 	bulletSoundTime=-bulletSoundTimeGap
 

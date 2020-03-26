@@ -15,6 +15,7 @@ local particleSystem=require("helperScripts.particleSystem")
 local assetName=require("helperScripts.assetName")
 local inGameUI=require("inGameUI")
 local messageService=require("helperScripts.messageService")
+local app42=require("externalServices.app42")
 
 ---------local vars---------
 local width = display.contentWidth
@@ -35,7 +36,6 @@ local confettiEmitterRight --Emitter that will emit from right side of screen
 local speakers -- contains refernce of speakers in the game (for proximity sounds)
 local readyTimer
 local readyTimeLimit -- time after which game state will be set to running
-local readyText
 
 ---------displayGroups---------
 local masterGroup -- will contain all displayGroups
@@ -97,7 +97,6 @@ function updateObstacles(dt)
 		obstacles[#obstacles+1] = obstacleMaker.new("circle", xPositions[selector], 0) 
 	 	obstacleSpawnTimer = 0 -- reset timer
 	end
-
 
 
 	-- update obstacles 
@@ -213,12 +212,10 @@ function makeGameOverMenu()
 	
 	if preferenceHandler.get("bestScore")<player.score then
 		preferenceHandler.set("bestScore",bestScore)
-
+		app42.sendScore("player5",bestScore)
 		--forcing single emission
 		confettiEmitterLeft.forceSingleEmission=true
-		confettiEmitterRight.forceSingleEmission=true			
-		-- printDebugStmt.print(" HighScore: "..bestScore)
-		
+		confettiEmitterRight.forceSingleEmission=true					
 	end
 
 	local menuBox = display.newRect(UIGroup, display.contentCenterX, display.contentCenterY-400 , 400, 400) -- box to be displayed+

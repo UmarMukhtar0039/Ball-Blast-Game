@@ -6,8 +6,9 @@ local textResource = {}
 	textResource.fontS=25
 	textResource.fontM=30		
 	textResource.fontL=40
-	textResource.fontXL=60
-
+	textResource.fontXL=50
+	textResource.fontXXL=60
+	
 	--urls
 	textResource.twitterUrl="https://twitter.com/famous_dogg"
 	textResource.googlePlayUrl="https://play.google.com/store/apps/details?id=com.famousdoggstudios.bt"
@@ -137,5 +138,13 @@ local textResource = {}
 
 	--general purpose toasts
 	textResource.adNotAvailableToast="Ad could not be fetched"
+
+	-- shop Menu
+	textResource.showMenuTitle="SHOP"
+	textResource.payToGetText="PAY TO GET"
+
+	textResource.product1Text="Product 1"
+	textResource.product2Text="Product 2"
+	textResource.product3Text="Product 3"
 
 return textResource

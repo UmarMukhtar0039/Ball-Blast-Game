@@ -1,7 +1,7 @@
 local player = { displayGroup = nil}
 
 local typesMap = require("playerTypesMap")
-
+local preferenceHandler=require("helperScripts.preferenceHandler")
 local player_mt = {__index = player}
 
 function player.new(type, x, y)
@@ -15,6 +15,7 @@ function player.new(type, x, y)
 		score = 0, -- initially score will be 0
 		sprite = nil, -- actual sprite of player
 		-- shadow = nil -- shadow of player
+		money=preferenceHandler.get("playerCurrency"), -- getting money in player's inventory
 		--collision properties
 		contentBound = {xMin = nil, yMin = nil, xMax = nil, yMax = nil, width = nil, height = nil},
 		lastDestoryedObstacle=nil, -- keeps reference of last destroyed obstacle by player, gets a reference in obstacle's script 		

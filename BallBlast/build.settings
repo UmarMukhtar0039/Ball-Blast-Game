@@ -6,16 +6,34 @@ settings =
 		supported = { "portrait","portraitUpsideDown", "landscapeLeft", "landscapeRight"}
 	},
 
-	android = 
-	{
-		versionCode = "10"
-	},
-
 	plugins={
 		['plugin.vibrator'] = 
         {
             publisherId = 'com.spiralcodestudio'
         },
+		["plugin.googleAnalytics"] =
+        {
+            publisherId = "com.coronalabs",
+            supportedPlatforms = { iphone=true, android=true }
+        },
+    },
 
-    }
+	-- Android Section
+	--
+
+
+	android =
+	{  
+
+		versionCode = "10",
+		usesPermissions =
+        {
+            "android.permission.INTERNET",
+            "android.permission.WRITE_EXTERNAL_STORAGE",
+            "android.permission.ACCESS_NETWORK_STATE",
+            "android.permission.GET_ACCOUNTS",
+            "android.permission.RECEIVE_BOOT_COMPLETED",
+        },
+	},
+
 }

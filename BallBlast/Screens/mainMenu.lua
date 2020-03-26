@@ -7,6 +7,7 @@ local assetName = require("helperScripts.assetName")
 local menuMaker=require("menuHelper.menu")
 local app42=require("externalServices.app42")
 local preferenceHandler=require("helperScripts.preferenceHandler")
+local shop=require("shop")
 
 
 --------local Variables--------
@@ -20,6 +21,8 @@ local mainMenuDisplay
 local makeWaitMenu
 local waitMenu
 local makeNewsMenu
+local leaderboardMenu
+local makeLeaderboardMenu
 local update -- update Function of this script
 
 
@@ -45,33 +48,43 @@ end
 ---------------------------
 
 function update()
-	-- check if news is ready if yes then delete the wait menu and call makeNewsMenu
-	if menuMaker.getMenuInFocus().name == "waitMenu" then
-		if app42.newsIsFetched==true then
-			waitMenu:destroy()			
-			makeNewsMenu()
+	if menuMaker.getMenuInFocus() ~= nil  then
+		if menuMaker.getMenuInFocus().name == "waitMenu" then
+			--check if leaderboardIsFetched then make leaderboard menu
+			if app42.leaderboardIsFetched==true then
+				waitMenu:destroy()
+				makeLeaderboardMenu()
+			end	-- body
 		end
 	end
+
+	shop.update()
 end
 
 ---------------------------
 
 -- called from external script to make a pause menu
 function makeMainMenu()
-		
+		printDebugStmt.print("make Menu")
 	mainMenuDisplay=menuMaker.newMenu("mainMenuDisplay", width*0.25, height*0.25, displayGroup,assetName.mainMenuBase,385,408)
 	-- if we want to set alpha of base image ?? 
 	-- displayMenu.baseImage.alpha=0.2
 
 	mainMenuDisplay:addButton("newsButton",200,170,100,70)
-	mainMenuDisplay:addButton("playButton",200, 300,126,88,nil,assetName.pauseButton)
+	mainMenuDisplay:addButton("leaderboardButton",200, 250, 200, 70)
+	mainMenuDisplay:addButton("shopButton",200,330,150,70)
+	mainMenuDisplay:addButton("playButton",200, 430,126,88,nil,assetName.pauseButton)
 	mainMenuDisplay:getItemByID("newsButton"):addTextDisplay({id="newsTextTitle",string="News",xRelative=0, yRelative=0, fontSize=30, colour={r=1,g=0,b=0}})
+	mainMenuDisplay:getItemByID("leaderboardButton"):addTextDisplay({id="highscoreText",string="Leaderboard",xRelative=0,yRelative=0,fontSize=30,colour={r=0,g=0,b=1}})
+	mainMenuDisplay:getItemByID("shopButton"):addTextDisplay({id="shopText",string="Shop",xRelative=0,yRelative=0,fontSize=30,colour={r=0,g=1,b=0}})
+	
 
-
+	-- add an exclamation mark if new news is added
 	if app42.currentNewsVersion~=nil then
 		if  app42.currentNewsVersion>preferenceHandler.get("currentNewsVersion")then
-			printDebugStmt.print("MM: cv: ")	
-			mainMenuDisplay:getItemByID("newsButton"):addAnimation({xRelative = 20, yRelative=-10, sheet= ,sequence={name="usual", start=1, count=5,time=800,loopcount=0}})
+			local sheet=graphics.newImageSheet(assetName.exclamationSprite,{width = 13, height = 42, numFrames = 5, sheetContentWidth = 65, sheetContentHeight = 42})
+			mainMenuDisplay:getItemByID("newsButton"):addAnimation({xRelative = 30, yRelative=-10, sheet=sheet,sequence={name="usual", start=1, count=5,time=800,loopcount=0}})
+			preferenceHandler.set("currentNewsVersion",app42.currentNewsVersion)
 		end		
 	end	
 
@@ -83,8 +96,19 @@ function makeMainMenu()
 
 	mainMenuDisplay:getItemByID("newsButton").callbackUp=function( )
 		mainMenuDisplay:destroy()
+		makeNewsMenu()
+	end
+
+	mainMenuDisplay:getItemByID("leaderboardButton").callbackUp=function()
+		mainMenuDisplay:destroy()
 		makeWaitMenu()
-		app42.fetchNews()
+		-- fetch n top rankers from server
+		app42.fetchScores(5)
+	end
+	-- call make shop menu when shop button is clicked
+	mainMenuDisplay:getItemByID("shopButton").callbackUp=function( )
+		mainMenuDisplay:destroy()
+		shop.makeShopMenu(makeMainMenu)
 	end
 end
 
@@ -105,7 +129,6 @@ end
 ------------------------
 -- make news menu after news is fetched
 function makeNewsMenu()
-	app42.newsIsFetched=false
 	newsMenu=menuMaker.newMenu("newsMenu", width*0.25, height*0.25,displayGroup,assetName.baseMenu,489,660)
 	newsMenu:addButton("okButton",200,600,100,100)
 	newsMenu:getItemByID("okButton"):addTextDisplay({id="okText",string="OK",xRelative=0,yRelative=0,fontSize=30,colour={r=1,g=0,b=0}})
@@ -118,6 +141,40 @@ function makeNewsMenu()
 
 	newsMenu:getItemByID("okButton").callbackUp=function()
 		newsMenu:destroy()
+		makeMainMenu()		
+	end
+end
+
+------------------------
+-- make leaderboard menu when leaderboard is fetched
+function makeLeaderboardMenu()
+	leaderboardMenu=menuMaker.newMenu("leaderboardMenu",width*0.25, height*0.25, displayGroup,assetName.baseMenu,489,660)
+	leaderboardMenu:addButton("okButton",200,600,100,100)
+	leaderboardMenu:getItemByID("okButton"):addTextDisplay({id="okText",string="OK",xRelative=0,yRelative=0,fontSize=30,colour={r=1,g=0,b=0}})
+
+	-- add display text i.e. seperate column for names and scores
+	leaderboardMenu:addTextDisplay({id="leaderboardNameTitle",string="Name",xRelative=100,yRelative=150,fontSize=30,colour={r=1,g=1,b=1}})
+	leaderboardMenu:addTextDisplay({id="leaderboardScoreTitle",string="Score",xRelative=350,yRelative=150,fontSize=30,colour={r=1,g=1,b=1}})
+
+	-- iterate through the leaderboardtable and list out names and scores
+	for i=1,#app42.leaderboardTable do
+		local name=app42.leaderboardTable[i].name
+		local score=app42.leaderboardTable[i].score
+		
+		-- set y relative of first player's score and name manually and then 
+		if i==1 then		
+			leaderboardMenu:addTextDisplay({id="name"..i,string=name, xRelative=80, yRelative=200,fontSize=25,colour={r=1,g=1,b=1}})
+			leaderboardMenu:addTextDisplay({id="score"..i,string=score, xRelative=330, yRelative=200, fontSize=25,colour={r=1,g=1,b=1}})
+		else
+			local yRelative= leaderboardMenu:getItemByID("name"..(i-1)).y + 50
+			yRelative=yRelative-leaderboardMenu.y		
+			leaderboardMenu:addTextDisplay({id="name"..i,string=name, xRelative=80, yRelative=yRelative,fontSize=25,colour={r=1,g=1,b=1}})
+			leaderboardMenu:addTextDisplay({id="score"..i,string=score, xRelative=330, yRelative=yRelative, fontSize=25,colour={r=1,g=1,b=1}})
+		end
+	end
+
+	leaderboardMenu:getItemByID("okButton").callbackUp=function()
+		leaderboardMenu:destroy()
 		makeMainMenu()		
 	end
 end

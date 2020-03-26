@@ -14,10 +14,6 @@ local gameWorld -- gets reference of game World
 local controlMenu
 local makePauseMenu -- fwd reference
 local pauseMenu
-local onPlayButtonDown
-local volumeButtonDown
-local volumeCycler
-
 --------------------
 --called from external script
 function inGameUI.init(gw,playerRef)
@@ -59,10 +55,10 @@ function makePauseMenu()
     gameWorld.gameState="suspended" -- suspended the game state on pause
     pauseMenu=menuMaker.newMenu("pauseMenu",width*0.25, height*0.25,inGameUI.displayGroup,assetName.baseMenu,489,660,true)
     pauseMenu:addButton("scrollUp",70, 500, 100, 100)
-    pauseMenu:getItemByID("scrollUp"):addTextDisplay({xRelative=0, yRelative=0, string="up",width=50,colour={r=1,g=0,b=0}})
+    pauseMenu:getItemByID("scrollUp"):addTextDisplay({xRelative=0, yRelative=0, string="up",colour={r=1,g=0,b=0}})
 
     pauseMenu:addButton("scrollDown",200, 500, 100, 100)
-    pauseMenu:getItemByID("scrollDown"):addTextDisplay({xRelative=0, yRelative=0, string="down",width=150,colour={r=1,g=0,b=0}})
+    pauseMenu:getItemByID("scrollDown"):addTextDisplay({xRelative=0, yRelative=0, string="down",colour={r=1,g=0,b=0}})
     
     pauseMenu:addButton("btnPlay",350, 400, 83, 70, nil,assetName.btnPlay)
     pauseMenu:addButton("btnExit",350, 500, 83, 70, nil,assetName.btnExit)

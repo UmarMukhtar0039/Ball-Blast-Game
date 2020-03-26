@@ -7,7 +7,7 @@ local displayObjects={}
 
 function printDebugStmt.print(msg)
    --disable the debug statement functionality if the game is running on a device
-   if(system.getInfo("environment")~="device")then
+   -- if(system.getInfo("environment")~="device")then
          print(msg)
          displayObjects[#displayObjects+1]=display.newText(msg,200, 100+msgCounter*20)
          msgCounter=msgCounter+1
@@ -21,7 +21,7 @@ function printDebugStmt.print(msg)
             end
             msgCounter=msgCounter-1--decrement the counter
          end
-   end
+   -- end
 end
 
 return printDebugStmt

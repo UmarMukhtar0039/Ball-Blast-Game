@@ -7,7 +7,7 @@ local player -- will contain reference of player from game world
 local playerPrevScore -- contains last player score before this iteration 
 local scoreText -- player's score display object 
 local setupDisplayObjects -- function to setup score display
-local updatePlayer -- will update player's score
+-- local updatePlayer -- will update player's score
 local updateDisplayObjects  -- will update display objects (score text)
 
 function gameplayManager.init(playerRef, obstaclesRef)
